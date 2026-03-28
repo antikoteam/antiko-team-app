@@ -887,11 +887,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                     </div>`;
                             } else {
                                 const iconName = s.icon || 'star';
-                                const cColor = s.color || '#ff003c';
-                                iconHtml = `
-                                    <div style="width: 70px; height: 70px; border-radius: 16px; background: linear-gradient(135deg, ${cColor}30, transparent); border: 1px solid ${cColor}60; display: flex; align-items: center; justify-content: center; margin: 0 auto; color: ${cColor}; box-shadow: inset 0 0 15px ${cColor}20, 0 0 20px ${cColor}40;">
-                                        <i class="ph-fill ph-${iconName}" style="font-size: 3rem; color: inherit; filter: drop-shadow(0 0 10px ${cColor});"></i>
-                                    </div>`;
+                                iconHtml = `<div style="color: ${s.color || '#ff003c'}; filter: drop-shadow(0 0 15px ${s.color || '#ff003c'}); display: inline-block;"><i class="ph-fill ph-${iconName}" style="color: inherit;"></i></div>`;
                             }
 
                             card.innerHTML = `
