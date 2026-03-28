@@ -1501,7 +1501,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">أو شعار صورة (Custom Logo)</label>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label class="form-label" style="margin-bottom: 0;">أو شعار صورة (Custom Logo)</label>
+                        <button type="button" onclick="removeServiceLogo()"
+                            style="background: none; border: none; color: var(--neon-red); cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.85rem;"><i
+                                class="ph ph-trash"></i> إزالة الصورة</button>
+                    </div>
                     <input type="file" id="service-logo-file" class="form-control" accept="image/*">
                     <input type="hidden" id="service-logo-base64">
                     <div id="service-logo-preview" class="mt-10 text-center"></div>

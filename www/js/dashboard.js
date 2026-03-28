@@ -1579,6 +1579,13 @@ window.editService = function (data) {
     if (modal) modal.classList.remove('hidden');
 };
 
+window.removeServiceLogo = function () {
+    document.getElementById('service-logo-file').value = '';
+    document.getElementById('service-logo-base64').value = '';
+    const preview = document.getElementById('service-logo-preview');
+    if (preview) preview.innerHTML = '';
+};
+
 window.deleteService = async function (id) {
     if (confirm("هل تريد حذف هذا القسم نهائياً؟ سيختفي من واجهة الموقع.")) {
         try {
