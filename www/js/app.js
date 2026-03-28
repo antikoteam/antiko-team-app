@@ -1008,9 +1008,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             countriesGrid.innerHTML = '';
             let hasActiveCountries = false;
-            const isNumberService = (targetCollection || "").toLowerCase().includes('whatsapp') ||
-                (targetCollection || "").toLowerCase().includes('telegram') ||
-                (service.slug || "").toLowerCase().includes('number');
+            const isNumberService = service.sectionType ? (service.sectionType === 'numbers') :
+                ((targetCollection || "").toLowerCase().includes('whatsapp') ||
+                    (targetCollection || "").toLowerCase().includes('telegram') ||
+                    (service.slug || "").toLowerCase().includes('number'));
 
             // Dynamic Layout Switch
             if (isNumberService) {
@@ -1032,9 +1033,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // Determine service types globally for the card
                     const collLow = (targetCollection || "").toLowerCase();
                     const slugLow = (service.slug || "").toLowerCase();
-                    const isBook = collLow.includes('book') || slugLow.includes('book');
-                    const isGame = collLow.includes('game') || collLow.includes('recharge') || slugLow.includes('game') || slugLow.includes('recharge');
-                    const isProject = collLow.includes('design') || collLow.includes('web') || collLow.includes('app');
+
+                    let isBook = collLow.includes('book') || slugLow.includes('book');
+                    let isGame = collLow.includes('game') || collLow.includes('recharge') || slugLow.includes('game') || slugLow.includes('recharge');
+                    let isProject = collLow.includes('design') || collLow.includes('web') || collLow.includes('app');
+
+                    if (service.sectionType === 'options') { isGame = true; isBook = false; }
+                    if (service.sectionType === 'store') { isGame = false; isProject = true; isBook = false; }
+
 
                     let visualHtml = '';
 
@@ -1115,9 +1121,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     // Purchase event
                     const startPurchase = (e) => {
-                        const isGame = (targetCollection || "").toLowerCase().includes('game') || (targetCollection || "").toLowerCase().includes('recharge');
+                        let isGamePurchase = (targetCollection || "").toLowerCase().includes('game') || (targetCollection || "").toLowerCase().includes('recharge');
+                        if (service.sectionType === 'options') isGamePurchase = true;
+                        if (service.sectionType === 'store' || service.sectionType === 'numbers') isGamePurchase = false;
+
                         if (e) { e.preventDefault(); e.stopPropagation(); }
-                        if (isGame) {
+                        if (isGamePurchase) {
                             openGameOptions(country, FlagsHelper.getFlagHtml(country.flagUrl || country.flag || country.icon, 70, 70, '2.5rem'));
                             return;
                         }
