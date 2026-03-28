@@ -887,7 +887,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                     </div>`;
                             } else {
                                 const iconName = s.icon || 'star';
-                                iconHtml = `<i class="ph-fill ph-${iconName}" style="color: ${s.color || '#ff003c'}; filter: drop-shadow(0 0 10px ${s.color || '#ff003c'}80);"></i>`;
+                                iconHtml = `<i class="ph-fill ph-${iconName}" style="color: ${s.color || '#ff003c'}; filter: drop-shadow(0 0 15px ${s.color || '#ff003c'});"></i>`;
                             }
 
                             card.innerHTML = `
