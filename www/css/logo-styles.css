@@ -1,0 +1,75 @@
+/* ==============================================
+   Logo Customization Panel
+   ==============================================
+   Use these variables to easily tweak the logo's look!
+*/
+:root {
+    --logo-width: 380px;
+    --logo-glow-color: rgba(255, 0, 60, 0.4);
+    /* Aura glow color */
+    --logo-shadow-color: rgba(0, 0, 0, 0.9);
+    /* Shadow/Edge glow color */
+    --logo-shadow-radius: 12px;
+    /* Thickness of the black edges effect */
+    --logo-blend-mode: multiply;
+    /* 'multiply' removes white background */
+    --logo-glow-intensity: 0.7;
+    /* 0 to 1 */
+    --logo-swing-angle: 3deg;
+    /* How far it swings */
+}
+
+.hanging-logo {
+    width: var(--logo-width);
+    max-width: 90vw;
+    display: block;
+    margin: 0 auto 10px;
+    transform-origin: top center;
+    animation: logo-swing 3.5s ease-in-out infinite alternate;
+
+    /* Mix blend mode handles the background removal */
+    mix-blend-mode: var(--logo-blend-mode);
+
+    /* Filters handle colors and sharp definition */
+    filter: contrast(1.1) brightness(1.1) drop-shadow(0 0 var(--logo-shadow-radius) var(--logo-shadow-color)) drop-shadow(0 0 5px var(--logo-shadow-color));
+
+    image-rendering: -webkit-optimize-contrast;
+    position: relative;
+    z-index: 10;
+}
+
+.logo-aura {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 150px;
+    background: radial-gradient(ellipse at center, var(--logo-glow-color) 0%, transparent 75%);
+    filter: blur(40px);
+    z-index: 1;
+    pointer-events: none;
+    animation: logo-pulse 3s infinite alternate;
+}
+
+@keyframes logo-swing {
+    0% {
+        transform: rotate(calc(-1 * var(--logo-swing-angle)));
+    }
+
+    100% {
+        transform: rotate(var(--logo-swing-angle));
+    }
+}
+
+@keyframes logo-pulse {
+    from {
+        opacity: calc(var(--logo-glow-intensity) * 0.7);
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+
+    to {
+        opacity: var(--logo-glow-intensity);
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}

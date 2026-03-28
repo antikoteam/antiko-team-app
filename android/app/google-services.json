@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "548565193060",
+    "project_id": "antiko-cb40b",
+    "storage_bucket": "antiko-cb40b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:548565193060:android:880d8917579fb9f852ea71",
+        "android_client_info": {
+          "package_name": "com.antikoteam.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "548565193060-93homav69t6pv462urihojmta9jjg3dn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.antikoteam.app",
+            "certificate_hash": "596284d5f28f0653b1482357392e878eee5f6542"
+          }
+        },
+        {
+          "client_id": "548565193060-dulnq8g2gsb2d4it8uqt7s08kodbgsu2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.antikoteam.app",
+            "certificate_hash": "fc5f853ede3729da22860961f609c01cf87878b4"
+          }
+        },
+        {
+          "client_id": "548565193060-isb1jh1b8er83fnpeqkqvoo049t0jsue.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgkEWcHLHWVBkzbOjMTOic9GZUcG91rag"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "548565193060-isb1jh1b8er83fnpeqkqvoo049t0jsue.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

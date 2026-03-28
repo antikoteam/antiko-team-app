@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر ميسا</title>
+    <!-- Premium Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;800&amp;family=Orbitron:wght@600;800;900&amp;display=swap"
+        rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/thin/style.css">
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/light/style.css">
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/bold/style.css">
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css">
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/duotone/style.css">
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/admin.css"> <!-- Added for dashboard styles -->
+    <style>
+        .service-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 30px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .service-icon {
+            font-size: 3rem;
+            color: var(--neon-red);
+            filter: drop-shadow(0 0 10px var(--neon-red-glow));
+        }
+
+        .service-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .service-content p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Top Nav Admin Overrides */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        #admin-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background Effects -->
+    <div class="bg-effects">
+        <canvas id="bg-lines" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"
+            width="756" height="469"></canvas>
+        <div class="cyber-grid"></div>
+        <div class="red-flare top-right"></div>
+        <div class="red-flare bottom-left"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="container top-nav">
+
+        <div id="admin-controls">
+            <!-- Normal state: Show Login -->
+            <button id="nav-login-btn" class="premium-btn secondary" style="padding: 8px 16px; font-size: 0.9rem;">تسجيل
+                الدخول للإدارة</button>
+
+            <!-- Logged In state: Show Dashboard / Account (Hidden by default) -->
+            <button id="nav-dashboard-btn" class="premium-btn hidden" style="padding: 8px 16px; font-size: 0.9rem;">
+                <i class="ph ph-squares-four"></i> لوحة التحكم
+            </button>
+            <button id="nav-account-btn" class="premium-btn secondary hidden"
+                style="padding: 8px 16px; font-size: 0.9rem;">
+                <i class="ph ph-user"></i> الحساب
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content wrapper -->
+    <div id="main-view">
+        <main class="container">
+            <!-- Loading State -->
+            <div id="loader" class="loader-container">
+                <div class="loader-spinner"></div>
+                <p>جاري تحميل النظام...</p>
+            </div>
+
+            <div id="app-content" class="hidden">
+                <header class="hero">
+                    <div class="hero-top-text" id="hero-top-text"></div>
+                    <div class="title-wrapper">
+                        <h1 class="misa-title" id="hero-title" data-text=""></h1>
+                    </div>
+                    <p class="subtitle" id="hero-subtitle"></p>
+                </header>
+
+                <!-- Mouse Follower -->
+                <div id="mouse-trailer"></div>
+
+                <!-- Main Menu Options -->
+                <div id="main-menu" class="grid-cards"
+                    style="margin-top: 50px; justify-content: center; display: flex; gap: 30px; flex-wrap: wrap;">
+                    <div class="glass-card text-center menu-card" id="open-team" style="flex: 0 1 350px;">
+                        <div class="card-edge"></div>
+                        <div class="card-inner" style="padding: 50px 20px;">
+                            <div class="menu-icon"><i class="ph-fill ph-users"></i></div>
+                            <h2 id="team-card-title"></h2>
+                            <p class="text-muted" id="team-card-sub"></p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card text-center menu-card" id="open-store" style="flex: 0 1 350px;">
+                        <div class="card-edge"></div>
+                        <div class="card-inner" style="padding: 50px 20px;">
+                            <div class="menu-icon"><i class="ph-fill ph-storefront"></i></div>
+                            <h2 id="store-card-title"></h2>
+                            <p class="text-muted" id="store-card-sub"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services Section -->
+                <section class="services-section hidden" id="services-section" style="margin-top: 40px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                        <h2 class="section-title" style="margin-bottom: 0;">أقسام المتجر</h2>
+                        <button id="back-to-main" class="premium-btn secondary" style="padding: 8px 16px;">
+                            <i class="ph ph-arrow-right"></i> العودة للقائمة
+                        </button>
+                    </div>
+
+                    <div class="grid-cards" id="store-sections-grid">
+                        <!-- Hardcoded WhatsApp Card -->
+                        <div class="glass-card menu-card slide-in storefront-card" data-type="whatsapp"
+                            style="cursor: pointer;">
+                            <div class="card-edge"></div>
+                            <div class="card-inner text-center" style="padding: 40px 20px;">
+                                <div class="menu-icon"><i class="ph-fill ph-whatsapp-logo"
+                                        style="color: #25D366; filter: drop-shadow(0 0 10px rgba(37,211,102,0.5));"></i>
+                                </div>
+                                <h2 id="wa-card-title"></h2>
+                                <p class="text-muted" id="wa-card-sub"></p>
+                            </div>
+                        </div>
+
+                        <!-- Hardcoded Telegram Card -->
+                        <div class="glass-card menu-card slide-in storefront-card" data-type="telegram"
+                            style="cursor: pointer;">
+                            <div class="card-edge"></div>
+                            <div class="card-inner text-center" style="padding: 40px 20px;">
+                                <div class="menu-icon"><i class="ph-fill ph-telegram-logo"
+                                        style="color: #0088cc; filter: drop-shadow(0 0 10px rgba(0,136,204,0.5));"></i>
+                                </div>
+                                <h2 id="tg-card-title"></h2>
+                                <p class="text-muted" id="tg-card-sub"></p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Dynamic Countries Section (Hidden by Default) -->
+                <section class="services-section hidden" id="countries-section" style="margin-top: 20px;">
+
+                    <!-- Announcement Banner (Shows only in Countries view) -->
+                    <div class="announcement-wrapper" id="announcement-wrapper"
+                        style="border: 1px solid rgba(255, 0, 60, 0.4); border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 15px; box-shadow: 0 0 20px rgba(255, 0, 60, 0.2); animation: splitOpen 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; overflow: hidden;">
+                        <i class="ph-fill ph-megaphone"
+                            style="font-size: 1.8rem; color: #ffcccc; animation: pulseGlow 2s infinite;"></i>
+                        <div class="announcement-content"
+                            style="color: white; font-size: 1.2rem; font-weight: 700; text-align: center; text-shadow: 0 0 10px rgba(0,0,0,0.8);">
+                            نوفر لكم أرقام واتس أب لجميع الدول وبأرخص الأسعار
+                        </div>
+                    </div>
+
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                        <h2 class="section-title" id="countries-title" style="margin-bottom: 0;">الدول المتاحة</h2>
+                        <button id="back-to-services-btn" class="premium-btn secondary" style="padding: 8px 16px;">
+                            <i class="ph ph-arrow-right"></i> العودة للمتجر
+                        </button>
+                    </div>
+
+                    <div class="grid-cards" id="countries-grid">
+                        <!-- Countries will be injected here -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==============================================
+         ADMIN MODAL (LOGIN)
+    =============================================== -->
+    <div id="login-modal" class="modal-overlay hidden">
+        <div class="modal" style="max-width: 400px; padding: 40px;">
+            <button class="modal-close" onclick="document.getElementById('login-modal').classList.add('hidden')"><i
+                    class="ph ph-x"></i></button>
+            <div class="text-center mb-4">
+                <h2 style="font-size: 1.5rem; color: #fff; margin-bottom: 10px;">تسجيل دخول الإدارة</h2>
+            </div>
+
+            <form id="login-form">
+                <div id="login-error" class="hidden"
+                    style="color: var(--neon-red); margin-bottom: 15px; text-align: center; background: rgba(255,0,0,0.1); padding: 10px; border-radius: 8px;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">البريد الإلكتروني</label>
+                    <input type="email" id="admin-email" class="form-control" required="" dir="ltr">
+                </div>
+
+                <div class="form-group mb-4">
+                    <label class="form-label">كلمة المرور</label>
+                    <input type="password" id="admin-password" class="form-control" required="" dir="ltr">
+                </div>
+
+                <button type="submit" class="premium-btn w-100" id="login-submit-btn">
+                    <i class="ph ph-sign-in"></i> دخول
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==============================================
+         ADMIN MODAL (ACCOUNT)
+    =============================================== -->
+    <div id="account-modal" class="modal-overlay hidden" style="z-index: 2000;">
+        <div class="modal" style="max-width: 400px; padding: 40px; text-align: center;">
+            <button class="modal-close" onclick="document.getElementById('account-modal').classList.add('hidden')"><i
+                    class="ph ph-x"></i></button>
+
+            <div style="margin-bottom: 20px;">
+                <i class="ph-fill ph-user-circle"
+                    style="font-size: 5rem; color: var(--neon-red); filter: drop-shadow(0 0 10px rgba(255,0,60,0.5));"></i>
+            </div>
+            <h2 style="font-size: 1.5rem; color: #fff; margin-bottom: 5px;">حسابي</h2>
+            <p id="account-email"
+                style="color: var(--text-secondary); margin-bottom: 30px; font-size: 1.1rem; direction: ltr;">-</p>
+
+            <button id="modal-logout-btn" class="premium-btn w-100"
+                style="background: rgba(255,0,60,0.1); border-color: var(--neon-red); color: var(--neon-red);">
+                <i class="ph ph-sign-out"></i> تسجيل الخروج
+            </button>
+        </div>
+    </div>
+
+    <!-- ==============================================
+         ADMIN DASHBOARD VIEW (Hidden by default)
+    =============================================== -->
+    <div id="dashboard-view" class="admin-layout hidden">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="sidebar" style="position: relative; height: auto; min-height: 80vh;">
+            <div class="sidebar-header" style="margin-top: 20px;">
+                <span class="badge success" style="display: inline-block;">مدير النظام</span>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a class="menu-item active" data-section="home">
+                    <i class="ph ph-squares-four"></i> الإحصائيات
+                </a>
+                <a class="menu-item" data-section="whatsapp-countries">
+                    <i class="ph ph-whatsapp-logo"></i> أرقام واتساب
+                </a>
+                <a class="menu-item" data-section="telegram-countries">
+                    <i class="ph ph-telegram-logo"></i> أرقام تيليجرام
+                </a>
+                <a class="menu-item" data-section="settings">
+                    <i class="ph ph-gear"></i> إعدادات الموقع
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Dashboard Content -->
+        <main class="admin-main" style="margin-right: 0;">
+            <!-- Section: Home -->
+            <section id="section-home" class="dashboard-section">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">نظرة عامة</h1>
+                    <button id="init-db-btn" class="premium-btn"
+                        style="background: linear-gradient(135deg, #00b359 0%, #00ff88 100%); color: #000; box-shadow: 0 4px 15px rgba(0,255,136,0.3);">
+                        <i class="ph-fill ph-database"></i> تهيئة قاعدة البيانات
+                    </button>
+                </div>
+
+                <div class="summary-cards">
+                    <div class="glass-card stat-card">
+                        <div class="card-edge"></div>
+                        <div class="card-inner" style="flex-direction:row; padding:15px;">
+                            <div class="stat-icon"><i class="ph-fill ph-flag"></i></div>
+                            <div class="stat-info">
+                                <h4>إجمالي الدول</h4>
+                                <div class="stat-number" id="stat-countries">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card stat-card">
+                        <div class="card-edge"></div>
+                        <div class="card-inner" style="flex-direction:row; padding:15px;">
+                            <div class="stat-icon"><i class="ph-fill ph-list-numbers"></i></div>
+                            <div class="stat-info">
+                                <h4>إجمالي الخدمات</h4>
+                                <div class="stat-number" id="stat-services">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card stat-card">
+                        <div class="card-edge"></div>
+                        <div class="card-inner" style="flex-direction:row; padding:15px;">
+                            <div class="stat-icon"
+                                style="color: var(--success); box-shadow: 0 0 15px var(--success-glow); background: rgba(0,255,136,0.1);">
+                                <i class="ph-fill ph-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h4>عناصر نشطة</h4>
+                                <div class="stat-number" id="stat-active">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: WhatsApp Countries -->
+            <section id="section-whatsapp-countries" class="dashboard-section hidden">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">إدارة أرقام واتساب</h1>
+                    <button class="premium-btn" onclick="openModal('whatsapp-country-modal')">
+                        <i class="ph ph-plus"></i> إضافة رقم واتساب
+                    </button>
+                </div>
+
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>العلم</th>
+                                <th>الدولة</th>
+                                <th>السعر</th>
+                                <th>الحالة</th>
+                                <th>الترتيب</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="whatsapp-countries-tbody">
+                            <tr>
+                                <td colspan="7" class="text-center">جاري التحميل...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section: Telegram Countries -->
+            <section id="section-telegram-countries" class="dashboard-section hidden">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">إدارة أرقام تيليجرام</h1>
+                    <button class="premium-btn" onclick="openModal('telegram-country-modal')">
+                        <i class="ph ph-plus"></i> إضافة رقم تيليجرام
+                    </button>
+                </div>
+
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>العلم</th>
+                                <th>الدولة</th>
+                                <th>السعر</th>
+                                <th>الحالة</th>
+                                <th>الترتيب</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="telegram-countries-tbody">
+                            <tr>
+                                <td colspan="7" class="text-center">جاري التحميل...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section: Settings -->
+            <section id="section-settings" class="dashboard-section hidden">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">إعدادات الموقع المتقدمة</h1>
+                </div>
+
+                <div class="glass-card" style="max-width: 800px; padding: 2px;">
+                    <div class="card-edge"></div>
+                    <div class="card-inner">
+                        <form id="settings-form">
+                            <h3
+                                style="margin-bottom: 20px; color: var(--neon-red); border-bottom: 1px solid var(--border-light); padding-bottom: 10px;">
+                                1. إعدادات الواجهة الرئيسية</h3>
+
+                            <div class="form-group">
+                                <label class="form-label">النص الصغير العلوي</label>
+                                <input type="text" id="set-heroTop" class="form-control" required="">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">العنوان الرئيسي</label>
+                                <input type="text" id="set-heroTitle" class="form-control" required="" dir="ltr"
+                                    text-align="right">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">النص الفرعي</label>
+                                <input type="text" id="set-heroSub" class="form-control" required="">
+                            </div>
+
+                            <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group">
+                                    <label class="form-label">عنوان بطاقة الفريق</label>
+                                    <input type="text" id="set-teamTitle" class="form-control" required="">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">النص الفرعي لبطاقة الفريق</label>
+                                    <input type="text" id="set-teamSub" class="form-control" required="">
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group">
+                                    <label class="form-label">عنوان بطاقة المتجر</label>
+                                    <input type="text" id="set-storeTitle" class="form-control" required="">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">النص الفرعي لبطاقة المتجر</label>
+                                    <input type="text" id="set-storeSub" class="form-control" required="">
+                                </div>
+                            </div>
+
+                            <h3
+                                style="margin-top: 30px; margin-bottom: 20px; color: #25D366; border-bottom: 1px solid var(--border-light); padding-bottom: 10px;">
+                                2. إعدادات واتساب</h3>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group">
+                                    <label class="form-label">عنوان بطاقة خدمة واتساب (في المتجر)</label>
+                                    <input type="text" id="set-waCardTitle" class="form-control" required="">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">النص الفرعي لبطاقة خدمة واتساب</label>
+                                    <input type="text" id="set-waCardSub" class="form-control" required="">
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3"
+                                style="display: flex; align-items: center; gap: 10px; flex-direction: row-reverse; justify-content: flex-end;">
+                                <label class="form-label" style="margin: 0; cursor: pointer;"
+                                    for="set-wa-showAnnounce">تفعيل شريط الإعلانات لواتساب</label>
+                                <input type="checkbox" id="set-wa-showAnnounce"
+                                    style="width: 20px; height: 20px; cursor: pointer;">
+                            </div>
+
+                            <div class="form-group mt-2">
+                                <label class="form-label">نص إعلان واتساب</label>
+                                <textarea id="set-wa-announceText" class="form-control" rows="2"></textarea>
+                            </div>
+
+                            <h3
+                                style="margin-top: 30px; margin-bottom: 20px; color: #0088cc; border-bottom: 1px solid var(--border-light); padding-bottom: 10px;">
+                                3. إعدادات تيليجرام</h3>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group">
+                                    <label class="form-label">عنوان بطاقة خدمة تيليجرام (في المتجر)</label>
+                                    <input type="text" id="set-tgCardTitle" class="form-control" required="">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">النص الفرعي لبطاقة خدمة تيليجرام</label>
+                                    <input type="text" id="set-tgCardSub" class="form-control" required="">
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-3"
+                                style="display: flex; align-items: center; gap: 10px; flex-direction: row-reverse; justify-content: flex-end;">
+                                <label class="form-label" style="margin: 0; cursor: pointer;"
+                                    for="set-tg-showAnnounce">تفعيل شريط الإعلانات لتيليجرام</label>
+                                <input type="checkbox" id="set-tg-showAnnounce"
+                                    style="width: 20px; height: 20px; cursor: pointer;">
+                            </div>
+
+                            <div class="form-group mt-2">
+                                <label class="form-label">نص إعلان تيليجرام</label>
+                                <textarea id="set-tg-announceText" class="form-control" rows="2"></textarea>
+                            </div>
+
+                            <div class="mt-4" style="text-align: left;">
+                                <button type="submit" class="premium-btn" id="save-settings-btn">
+                                    <i class="ph ph-floppy-disk"></i> حفظ التغييرات
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal: WhatsApp Country -->
+    <div id="whatsapp-country-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('whatsapp-country-modal')"><i class="ph ph-x"></i></button>
+            <h2 class="modal-title" id="whatsapp-country-modal-title">إضافة رقم واتساب جديد</h2>
+
+            <form id="whatsapp-country-form">
+                <input type="hidden" id="whatsapp-country-id">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">الاسم باللغة العربية</label>
+                        <input type="text" id="whatsapp-country-nameAr" class="form-control" required="">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الاسم باللغة الإنجليزية</label>
+                        <input type="text" id="whatsapp-country-nameEn" class="form-control" required="" dir="ltr">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">السعر (رقم فقط)</label>
+                        <input type="number" id="whatsapp-country-price" class="form-control" required="">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">العملة</label>
+                        <input type="text" id="whatsapp-country-currency" class="form-control" value="ج.م" required="">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">العلم (رابط الصورة أو إيموجي)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="whatsapp-country-flag" class="form-control" required=""
+                            placeholder="مثال: 🇪🇬 أو رابط مباشر لصورة" style="flex: 1;">
+                        <button type="button" class="premium-btn secondary open-emoji-btn"
+                            data-target="whatsapp-country-flag" style="padding: 0 15px; font-size: 1.5rem;"
+                            title="اختر إيموجي"><i class="ph ph-smiley"></i></button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">الترتيب</label>
+                        <input type="number" id="whatsapp-country-sort" class="form-control" value="0" required="">
+                    </div>
+                    <div class="form-group"
+                        style="display: flex; align-items: center; gap: 10px; flex-direction: row-reverse; justify-content: flex-end; padding-top: 30px;">
+                        <label class="form-label" style="margin: 0;">مفعل</label>
+                        <input type="checkbox" id="whatsapp-country-active" checked=""
+                            style="width: 20px; height: 20px;">
+                    </div>
+                </div>
+
+                <div class="mt-4" style="text-align: left;">
+                    <button type="submit" class="premium-btn w-100" id="save-whatsapp-country-btn">حفظ الرقم</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Telegram Country -->
+    <div id="telegram-country-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('telegram-country-modal')"><i class="ph ph-x"></i></button>
+            <h2 class="modal-title" id="telegram-country-modal-title">إضافة رقم تيليجرام جديد</h2>
+
+            <form id="telegram-country-form">
+                <input type="hidden" id="telegram-country-id">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">الاسم باللغة العربية</label>
+                        <input type="text" id="telegram-country-nameAr" class="form-control" required="">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الاسم باللغة الإنجليزية</label>
+                        <input type="text" id="telegram-country-nameEn" class="form-control" required="" dir="ltr">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">السعر (رقم فقط)</label>
+                        <input type="number" id="telegram-country-price" class="form-control" required="">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">العملة</label>
+                        <input type="text" id="telegram-country-currency" class="form-control" value="ج.م" required="">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">العلم (رابط الصورة أو إيموجي)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="telegram-country-flag" class="form-control" required=""
+                            placeholder="مثال: 🇪🇬 أو رابط مباشر لصورة" style="flex: 1;">
+                        <button type="button" class="premium-btn secondary open-emoji-btn"
+                            data-target="telegram-country-flag" style="padding: 0 15px; font-size: 1.5rem;"
+                            title="اختر إيموجي"><i class="ph ph-smiley"></i></button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">الترتيب</label>
+                        <input type="number" id="telegram-country-sort" class="form-control" value="0" required="">
+                    </div>
+                    <div class="form-group"
+                        style="display: flex; align-items: center; gap: 10px; flex-direction: row-reverse; justify-content: flex-end; padding-top: 30px;">
+                        <label class="form-label" style="margin: 0;">مفعل</label>
+                        <input type="checkbox" id="telegram-country-active" checked=""
+                            style="width: 20px; height: 20px;">
+                    </div>
+                </div>
+
+                <div class="mt-4" style="text-align: left;">
+                    <button type="submit" class="premium-btn w-100" id="save-telegram-country-btn">حفظ الرقم</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Emoji Picker Modal -->
+    <div id="emoji-picker-modal" class="modal-overlay hidden" style="z-index: 2000;">
+        <div class="modal"
+            style="padding: 20px; max-width: 400px; display: flex; flex-direction: column; align-items: center;">
+            <button class="modal-close" onclick="closeModal('emoji-picker-modal')"><i class="ph ph-x"></i></button>
+            <h2 class="modal-title" style="margin-bottom: 15px; font-size: 1.2rem;">اختر علم الدولة</h2>
+            <emoji-picker class="dark"
+                style="width: 100%; height: 400px; --background: var(--bg-card); --border-color: var(--border-light); --input-border-color: var(--border-light); --indicator-color: var(--neon-red); --button-hover-background: rgba(255,0,60,0.1); --search-icon-color: var(--neon-red);"></emoji-picker>
+        </div>
+    </div>
+
+    <script>
+        // Modal helpers
+        function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
+        function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+    </script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
+    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/dashboard.js"></script>
+    <script type="module" src="js/init-db.js"></script>
+
+
+</body>
+
+</html>

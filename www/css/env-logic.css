@@ -1,0 +1,26 @@
+/*
+ * Antiko Environment Separation Logic
+ * Used to differentiate between Website and App
+ */
+
+/* 1. Hiding elements across environments */
+
+/* This will ONLY show on the Website */
+.env-app .only-web {
+    display: none !important;
+}
+
+/* This will ONLY show in the App */
+.env-web .only-app {
+    display: none !important;
+}
+
+/* 2. Style differences (Example usage) */
+/* .env-app body { background-color: #000; } */
+/* .env-web body { background-color: #0c0c0c; } */
+
+/* 3. Safe Area Support for Apps */
+.env-app {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}

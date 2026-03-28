@@ -1,0 +1,178 @@
+/* 
+====================================================================
+            LAPTOP UI REPLICATION - PURE BLACK & MOTION
+==================================================================== 
+*/
+
+:root {
+    --bg-dark: #000000 !important;
+}
+
+body {
+    background-color: #000000 !important;
+}
+
+/* Ensure background is pure black everywhere */
+#main-view,
+#app-content,
+.admin-main,
+.glass-card .card-inner,
+.modal,
+.mobile-bottom-nav {
+    background-color: #000000 !important;
+    background: #000000 !important;
+}
+
+/* Animations from Laptop Site */
+@keyframes floating {
+    0% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    33% {
+        transform: translateY(-5px) rotate(-0.5deg);
+    }
+
+    66% {
+        transform: translateY(5px) rotate(0.5deg);
+    }
+
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+}
+
+@keyframes neon-glow-vibrant {
+
+    0%,
+    100% {
+        text-shadow: 0 0 10px rgba(138, 3, 3, 0.7), 0 0 20px rgba(255, 0, 0, 0.5);
+    }
+
+    50% {
+        text-shadow: 0 0 25px rgba(255, 0, 60, 1), 0 0 50px rgba(255, 0, 60, 0.6);
+    }
+}
+
+@keyframes gridMove {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 0 50px;
+    }
+}
+
+/* The Main Title "ANTIKO" */
+.misa-title {
+    color: #ff003c !important;
+    /* Brighter Red for better visibility */
+    animation: glitchText 1.5s infinite linear alternate,
+        floating 3s infinite ease-in-out,
+        neon-glow-vibrant 2s infinite alternate !important;
+    font-family: 'DoctorGlitch', 'Anton', sans-serif !important;
+    position: relative;
+    z-index: 10;
+}
+
+/* Background Effects Visibility */
+.cyber-grid {
+    display: block !important;
+    opacity: 0.25 !important;
+    animation: gridMove 10s linear infinite !important;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px) !important;
+}
+
+.red-flare {
+    display: block !important;
+    opacity: 0.6 !important;
+    animation: flare-pulse 10s infinite alternate ease-in-out !important;
+}
+
+@keyframes flare-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+
+    100% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+}
+
+/* Mobile Overrides - Kill any "animation: none" */
+@media (max-width: 991px) {
+    .misa-title {
+        animation: glitchText 1.5s infinite linear alternate,
+            floating 3s infinite ease-in-out,
+            neon-glow-vibrant 2s infinite alternate !important;
+        font-size: 3.2rem !important;
+    }
+
+    .cyber-grid,
+    .red-flare {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 0.3 !important;
+    }
+}
+
+/* Premium Large Announcement */
+.home-announcement {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100% !important;
+    min-height: 160px !important;
+    margin: 30px 0 50px 0 !important;
+    padding: 50px 30px !important;
+    background: linear-gradient(135deg, rgba(255, 0, 60, 0.25) 0%, rgba(0, 0, 0, 0.7) 50%, rgba(255, 0, 60, 0.25) 100%) !important;
+    border: 3px solid rgba(255, 0, 60, 0.6) !important;
+    border-radius: 30px !important;
+    box-shadow: 0 0 50px rgba(255, 0, 60, 0.4), inset 0 0 40px rgba(0, 0, 0, 0.95) !important;
+    backdrop-filter: blur(25px) !important;
+    animation: glowPulseBanner 4s infinite alternate ease-in-out !important;
+}
+
+.home-announcement .announcement-content,
+#announcement-wrapper .announcement-content {
+    font-size: 2.8rem !important;
+    /* Massive Text */
+    line-height: 1.2 !important;
+    color: #ffffff !important;
+    font-weight: 950 !important;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 20px rgba(255, 0, 60, 1) !important;
+    width: 100% !important;
+    font-family: 'DoctorGlitch', 'Anton', sans-serif !important;
+}
+
+@keyframes glowPulseBanner {
+    0% {
+        border-color: rgba(255, 0, 60, 0.3);
+        box-shadow: 0 0 20px rgba(255, 0, 60, 0.2);
+        transform: scale(0.99);
+    }
+
+    100% {
+        border-color: rgba(255, 0, 60, 0.7);
+        box-shadow: 0 0 60px rgba(255, 0, 60, 0.4);
+        transform: scale(1.01);
+    }
+}
+
+@media (max-width: 768px) {
+    .home-announcement .announcement-content {
+        font-size: 1.4rem !important;
+    }
+
+    .home-announcement {
+        min-height: 100px !important;
+        padding: 30px 20px !important;
+        margin: 20px 0 40px 0 !important;
+    }
+}

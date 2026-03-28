@@ -1,0 +1,24 @@
+{
+    "appId": "com.antikoteam.app",
+    "appName": "Antiko Team App",
+    "webDir": "www",
+    "bundledWebRuntime": false,
+    "plugins": {
+        "GoogleAuth": {
+            "scopes": [
+                "profile",
+                "email"
+            ],
+            "serverClientId": "548565193060-isb1jh1b8er83fnpeqkqvoo049t0jsue.apps.googleusercontent.com",
+            "clientId": "548565193060-isb1jh1b8er83fnpeqkqvoo049t0jsue.apps.googleusercontent.com",
+            "androidClientId": "548565193060-isb1jh1b8er83fnpeqkqvoo049t0jsue.apps.googleusercontent.com",
+            "forceCodeForRefreshToken": true
+        },
+        "FirebaseAuthentication": {
+            "providers": [
+                "google.com"
+            ],
+            "skipNativeAuth": false
+        }
+    }
+}

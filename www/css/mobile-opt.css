@@ -1,0 +1,30 @@
+/* Mobile Optimizations for Antiko Team App */
+/* Reduces rendering load and improves performance */
+
+/* Removed selection overrides to respect the new protection system */
+
+/* Disable heavy CSS calculations on low-end/mobile devices */
+@media (max-width: 768px) {
+    * {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    /* Keep minimal shadows for active/colored elements if strictly needed */
+    .premium-btn {
+        box-shadow: 0 0 5px rgba(255, 0, 60, 0.3) !important;
+    }
+
+    .glass-card {
+        background: rgba(10, 10, 10, 0.95) !important;
+        /* solid fallback since blur is off */
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* Reduce heavy animations if present */
+    .misa-title {
+        animation: none !important;
+    }
+}
