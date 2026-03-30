@@ -406,6 +406,59 @@
     </div>
 
     <!-- ==============================================
+         PRIVACY POLICY MODAL
+    =============================================== -->
+    <div id="privacy-policy-modal" class="modal-overlay hidden" style="z-index: 3000;">
+        <div class="modal" style="max-width: 450px; padding: 30px;">
+            <div class="text-center mb-4">
+                <h2 style="font-size: 1.5rem; color: #fff; margin-bottom: 15px; border: none; padding: 0;">سياسة
+                    الخصوصية</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">يرجى مراجعة السياسة قبل المتابعة</p>
+            </div>
+
+            <div id="privacy-content"
+                style="max-height: 280px; overflow-y: auto; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px; margin-bottom: 25px; font-size: 0.9rem; line-height: 1.7; color: #bbb; text-align: right; border: 1px solid rgba(255,255,255,0.05); scrollbar-width: thin; scrollbar-color: var(--neon-red) transparent;">
+                <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 10px;">1. البيانات التي نجمعها</h3>
+                <p>نجمع بريدك الإلكتروني واسمك عند التسجيل (عبر Google أو البريد) لتأمين حسابك ومشترياتك.</p>
+
+                <h3 style="color: #fff; font-size: 1.1rem; margin-top: 20px; margin-bottom: 10px;">2. كيف نستخدم
+                    بياناتك؟</h3>
+                <p>تستخدم البيانات لإدارة حسابك، تخصيص إعداداتك، وتقديم الدعم الفني السريع عبر نظام التذاكر.</p>
+
+                <h3 style="color: #fff; font-size: 1.1rem; margin-top: 20px; margin-bottom: 10px;">3. الحماية والأمان
+                </h3>
+                <p>نستخدم تقنيات Google Firebase لتخزين البيانات بأمان وتشفيرها. لا نقوم ببيع أو مشاركة بياناتك مع أي
+                    جهة خارجية.</p>
+
+                <h3 style="color: #fff; font-size: 1.1rem; margin-top: 20px; margin-bottom: 10px;">4. حذف البيانات</h3>
+                <p>يحق لك في أي وقت المطالبة بحذف حسابك نهائياً عبر تذاكر الدعم بداخل التطبيق.</p>
+
+                <p style="margin-top: 20px; color: var(--neon-red); font-weight: 600;">باستخدامك للتطبيق، أنت توافق على
+                    شروط الخدمة وسياسة الخصوصية الخاصة بنا فـريق (Antiko Team).</p>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px; cursor: pointer; user-select: none; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 12px;"
+                id="agree-container">
+                <div id="agree-checkbox"
+                    style="width: 24px; height: 24px; border: 2px solid var(--neon-red); border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; background: transparent;">
+                    <i class="ph-fill ph-check hidden" style="color: #fff; font-size: 16px;"></i>
+                </div>
+                <span style="font-size: 0.95rem; color: #fff; font-weight: 600;">نعم، أنا أوافق على كافة الشروط</span>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button id="privacy-cancel-btn" class="premium-btn secondary" style="flex: 1; padding: 12px;">
+                    إلغاء
+                </button>
+                <button id="privacy-next-btn" class="premium-btn disabled"
+                    style="flex: 2; padding: 12px; opacity: 0.5; pointer-events: none; filter: grayscale(1);">
+                    <span>التالي</span> <i class="ph ph-caret-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================
          ADMIN MODAL (LOGIN)
     =============================================== -->
     <div id="login-modal" class="modal-overlay hidden">

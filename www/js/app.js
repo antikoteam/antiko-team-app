@@ -38,6 +38,67 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mainView = document.getElementById('main-view');
     const dashboardView = document.getElementById('dashboard-view');
 
+    // Privacy Policy Elements
+    const privacyModal = document.getElementById('privacy-policy-modal');
+    const privacyNextBtn = document.getElementById('privacy-next-btn');
+    const privacyCancelBtn = document.getElementById('privacy-cancel-btn');
+    const agreeContainer = document.getElementById('agree-container');
+    const agreeCheckbox = document.getElementById('agree-checkbox');
+    let hasAgreed = false;
+
+    const openPrivacyModal = () => {
+        privacyModal.classList.remove('hidden');
+        // Reset agreement
+        hasAgreed = false;
+        if (agreeCheckbox && agreeCheckbox.querySelector('i')) {
+            agreeCheckbox.querySelector('i').classList.add('hidden');
+        }
+        if (privacyNextBtn) {
+            privacyNextBtn.classList.add('disabled');
+            privacyNextBtn.style.opacity = '0.5';
+            privacyNextBtn.style.pointerEvents = 'none';
+            privacyNextBtn.style.filter = 'grayscale(1)';
+        }
+    };
+
+    if (agreeContainer) {
+        agreeContainer.onclick = () => {
+            hasAgreed = !hasAgreed;
+            const checkIcon = agreeCheckbox.querySelector('i');
+            if (hasAgreed) {
+                if (checkIcon) checkIcon.classList.remove('hidden');
+                privacyNextBtn.classList.remove('disabled');
+                privacyNextBtn.style.opacity = '1';
+                privacyNextBtn.style.pointerEvents = 'auto';
+                privacyNextBtn.style.filter = 'none';
+                if (typeof playSound === 'function') playSound('nav');
+            } else {
+                if (checkIcon) checkIcon.classList.add('hidden');
+                privacyNextBtn.classList.add('disabled');
+                privacyNextBtn.style.opacity = '0.5';
+                privacyNextBtn.style.pointerEvents = 'none';
+                privacyNextBtn.style.filter = 'grayscale(1)';
+            }
+        };
+    }
+
+    if (privacyNextBtn) {
+        privacyNextBtn.onclick = () => {
+            if (hasAgreed) {
+                privacyModal.classList.add('hidden');
+                loginModal.classList.remove('hidden');
+                if (typeof playSound === 'function') playSound('menu');
+            }
+        };
+    }
+
+    if (privacyCancelBtn) {
+        privacyCancelBtn.onclick = () => {
+            privacyModal.classList.add('hidden');
+            if (typeof playSound === 'function') playSound('back');
+        };
+    }
+
     const adminEmails = [
         "kareem.abdullatif.official@gmail.com",
         "omaranter.abdallah@gmail.com",
@@ -224,7 +285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Login Modal Open
     if (navLoginBtn) {
         navLoginBtn.addEventListener('click', () => {
-            loginModal.classList.remove('hidden');
+            openPrivacyModal();
         });
     }
 
@@ -578,7 +639,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 accountEmail.textContent = currentUser.email;
                 accountModal.classList.remove('hidden');
             } else {
-                loginModal.classList.remove('hidden');
+                openPrivacyModal();
             }
             setActiveNavItem('btn-nav-account');
         };
@@ -660,7 +721,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             e.preventDefault();
             if (!currentUser) {
                 showError('يرجى تسجيل الدخول أولاً للمراسلة');
-                loginModal.classList.remove('hidden');
+                openPrivacyModal();
                 return;
             }
 
