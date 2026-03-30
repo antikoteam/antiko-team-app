@@ -65,7 +65,7 @@ body {
 }
 
 /* The Main Title "ANTIKO" */
-.misa-title {
+.Antiko-title {
     color: #ff003c !important;
     /* Brighter Red for better visibility */
     animation: glitchText 1.5s infinite linear alternate,
@@ -105,7 +105,7 @@ body {
 
 /* Mobile Overrides - Kill any "animation: none" */
 @media (max-width: 991px) {
-    .misa-title {
+    .Antiko-title {
         animation: glitchText 1.5s infinite linear alternate,
             floating 3s infinite ease-in-out,
             neon-glow-vibrant 2s infinite alternate !important;

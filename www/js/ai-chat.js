@@ -1,5 +1,5 @@
 
-// Antiko AI Chat System - Misa 💖
+// Antiko AI Chat System - Antiko 💖
 // DeepSeek Powered Dynamic Engine with Site Knowledge
 import { db, getDoc, doc, collection, getDocs } from "./firebase-config.js";
 
@@ -36,14 +36,14 @@ import { db, getDoc, doc, collection, getDocs } from "./firebase-config.js";
             console.log("Antiko AI: Production Web Mode.");
         }
 
-        // Misa's Brain 🧠 - Dynamic DeepSeek Engine with Site Consciousness
-        let conversationHistory = JSON.parse(localStorage.getItem('misa_history') || "[]");
-        let dynamicSystemPrompt = localStorage.getItem('misa_persona') || `أنت "أنتيكو"، المساعد الذكي لشركة وفريق عمل "أنتيكو تيم". كن ودوداً جداً واستخدم اللهجة المصرية الودودة.`;
+        // Antiko's Brain 🧠 - Dynamic DeepSeek Engine with Site Consciousness
+        let conversationHistory = JSON.parse(localStorage.getItem('Antiko_history') || "[]");
+        let dynamicSystemPrompt = localStorage.getItem('Antiko_persona') || `أنت "أنتيكو"، المساعد الذكي لشركة وفريق عمل "أنتيكو تيم". كن ودوداً جداً واستخدم اللهجة المصرية الودودة.`;
 
         // --- API Config State ---
-        let apiKeys = JSON.parse(localStorage.getItem('misa_keys') || "[]");
-        let apiBaseUrl = localStorage.getItem('misa_base_url') || "https://api.azy.ai/v1";
-        let apiModelName = localStorage.getItem('misa_model') || "gpt-3.5-turbo";
+        let apiKeys = JSON.parse(localStorage.getItem('Antiko_keys') || "[]");
+        let apiBaseUrl = localStorage.getItem('Antiko_base_url') || "https://api.azy.ai/v1";
+        let apiModelName = localStorage.getItem('Antiko_model') || "gpt-3.5-turbo";
         let currentKeyIndex = 0;
 
         let siteKnowledge = "";
@@ -59,22 +59,22 @@ import { db, getDoc, doc, collection, getDocs } from "./firebase-config.js";
 
                     if (data.system_prompt) {
                         dynamicSystemPrompt = data.system_prompt;
-                        localStorage.setItem('misa_persona', dynamicSystemPrompt);
+                        localStorage.setItem('Antiko_persona', dynamicSystemPrompt);
                     }
 
                     if (data.api_keys && Array.isArray(data.api_keys)) {
                         apiKeys = data.api_keys;
-                        localStorage.setItem('misa_keys', JSON.stringify(apiKeys));
+                        localStorage.setItem('Antiko_keys', JSON.stringify(apiKeys));
                     }
 
                     if (data.api_base_url) {
                         apiBaseUrl = data.api_base_url;
-                        localStorage.setItem('misa_base_url', apiBaseUrl);
+                        localStorage.setItem('Antiko_base_url', apiBaseUrl);
                     }
 
                     if (data.api_model_name) {
                         apiModelName = data.api_model_name;
-                        localStorage.setItem('misa_model', apiModelName);
+                        localStorage.setItem('Antiko_model', apiModelName);
                     }
                 }
 
@@ -152,10 +152,10 @@ import { db, getDoc, doc, collection, getDocs } from "./firebase-config.js";
                 if (!isConfigSynced) await configPromise;
 
                 const finalPrompt = (dynamicSystemPrompt + siteKnowledge).substring(0, 1500);
-                const response = await getMisaResponse(text, finalPrompt);
+                const response = await getAntikoResponse(text, finalPrompt);
                 aiMsgDiv.querySelector('.msg-content').innerHTML = response;
             } catch (err) {
-                console.error("Misa AI Error:", err);
+                console.error("Antiko AI Error:", err);
                 aiMsgDiv.querySelector('.msg-content').textContent = `⚠️ عذراً، حصل خطأ في الاتصال: ${err.message}`;
             }
 
@@ -192,7 +192,7 @@ import { db, getDoc, doc, collection, getDocs } from "./firebase-config.js";
             }
         }
 
-        async function getMisaResponse(userText, fullPrompt) {
+        async function getAntikoResponse(userText, fullPrompt) {
             try {
                 return await fetchGemini(userText, fullPrompt);
             } catch (fatalError) {
@@ -201,7 +201,7 @@ import { db, getDoc, doc, collection, getDocs } from "./firebase-config.js";
             }
         }
 
-        // --- 🧠 Misa Internal Mini-Brain (Offline Fallback) ---
+        // --- 🧠 Antiko Internal Mini-Brain (Offline Fallback) ---
         class LocalBrain {
             constructor() {
                 this.knowledge = {
@@ -259,7 +259,7 @@ import { db, getDoc, doc, collection, getDocs } from "./firebase-config.js";
                 url = `${cleanBaseUrl}/chat/completions`;
             }
 
-            console.log(`[Misa AI] Attempting: ${isProxy ? cleanBaseUrl : 'Gemini Direct'} (Key #${currentKeyIndex + 1})`);
+            console.log(`[Antiko AI] Attempting: ${isProxy ? cleanBaseUrl : 'Gemini Direct'} (Key #${currentKeyIndex + 1})`);
 
             let payload;
             if (isProxy) {
@@ -339,7 +339,7 @@ import { db, getDoc, doc, collection, getDocs } from "./firebase-config.js";
                 }
 
                 // If ALL APIs fail, use the Mini-Brain Fallback!
-                console.warn("All remotes failed. Falling back to Misa Mini-Brain...");
+                console.warn("All remotes failed. Falling back to Antiko Mini-Brain...");
                 const localResponse = localBrain.think(userText);
                 updateHistory("user", userText, "model", localResponse);
                 return formatText(localResponse + "\n\n(تم الرد بواسطة الذكاء الداخلي لعدم وجود إنترنت 📡)");
@@ -351,7 +351,7 @@ import { db, getDoc, doc, collection, getDocs } from "./firebase-config.js";
             conversationHistory.push({ role: mRole, parts: [{ text: mText }] });
             if (conversationHistory.length > 20) conversationHistory = conversationHistory.slice(-20);
 
-            localStorage.setItem('misa_history', JSON.stringify(conversationHistory));
+            localStorage.setItem('Antiko_history', JSON.stringify(conversationHistory));
         }
 
         function formatText(t) {

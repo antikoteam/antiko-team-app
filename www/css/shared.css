@@ -1,6 +1,6 @@
 /* 
 ====================================================================
-                        MISA BOT SHARED THEME
+                        Antiko BOT SHARED THEME
 ==================================================================== 
 */
 
@@ -200,7 +200,7 @@ a {
     display: inline-block;
 }
 
-.misa-title {
+.Antiko-title {
     font-family: 'DoctorGlitch', 'Anton', sans-serif;
     font-size: 2.5rem;
     font-weight: normal;
@@ -214,8 +214,8 @@ a {
     animation: glitchText 1.5s infinite linear alternate, floating 4s infinite ease-in-out, neon-glow 3s infinite alternate;
 }
 
-.misa-title::before,
-.misa-title::after {
+.Antiko-title::before,
+.Antiko-title::after {
     content: attr(data-text);
     position: absolute;
     top: 0;
@@ -225,7 +225,7 @@ a {
     z-index: -1;
 }
 
-.misa-title::before {
+.Antiko-title::before {
     left: 2px;
     text-shadow: -2px 0 #ffff00, 2px 0 #ff003c;
     clip: rect(44px, 410px, 56px, 0);
@@ -233,7 +233,7 @@ a {
     opacity: 0.9;
 }
 
-.misa-title::after {
+.Antiko-title::after {
     left: -2px;
     text-shadow: -2px 0 #ff003c, 2px 0 #ffff00;
     clip: rect(44px, 410px, 56px, 0);
@@ -500,7 +500,7 @@ a {
         backdrop-filter: blur(5px);
     }
 
-    .misa-title {
+    .Antiko-title {
         text-shadow: 0 0 10px var(--neon-red-glow);
     }
 
@@ -544,7 +544,7 @@ a {
         background: #000000 !important;
     }
 
-    .misa-title {
+    .Antiko-title {
         font-family: 'DoctorGlitch', 'Anton', sans-serif !important;
         font-size: 3.5rem !important;
         animation: glitchText 1.5s infinite linear alternate, floating 4s infinite ease-in-out, neon-glow 3s infinite alternate !important;
@@ -552,8 +552,8 @@ a {
         color: #8a0303 !important;
     }
 
-    .misa-title::before,
-    .misa-title::after {
+    .Antiko-title::before,
+    .Antiko-title::after {
         display: block !important;
         opacity: 0.7 !important;
     }
@@ -1757,7 +1757,7 @@ a {
         margin-right: 0;
     }
 
-    .misa-title {
+    .Antiko-title {
         font-size: 3rem;
     }
 
@@ -1773,7 +1773,7 @@ a {
         padding: 0 15px;
     }
 
-    .misa-title {
+    .Antiko-title {
         font-size: 2.8rem;
         letter-spacing: 1px;
     }
@@ -1830,7 +1830,7 @@ a {
 
 /* Extra small screens */
 @media (max-width: 480px) {
-    .misa-title {
+    .Antiko-title {
         font-size: 2.2rem;
     }
 
@@ -2001,7 +2001,7 @@ body {
         margin-bottom: 20px !important;
     }
 
-    .misa-title {
+    .Antiko-title {
         font-size: 2.8rem !important;
         letter-spacing: 1px !important;
     }

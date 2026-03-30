@@ -100,11 +100,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const adminEmails = [
-        "kareem.abdullatif.official@gmail.com",
+        "karemkoko257koko@gmail.com",
         "omaranter.abdallah@gmail.com",
         "antiko.cb40b@gmail.com",
         "admin257@gmail.com",
-        "kareem9989193@gmail.com"
+        "kareem9989193@gmail.com",
+        "zyadwzyry0@gmail.com",
+        "b35435573@gmail.com",
+        "rsam64833@gmail.com"
     ];
 
     // ==========================================
@@ -232,10 +235,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // App State Change (Pause music on background)
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
         window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
-            if (!isActive && sounds.bg) {
-                sounds.bg.pause();
-            } else if (isActive && appSettings.musicEnabled && sounds.bg) {
-                sounds.bg.play().catch(() => { });
+            console.log("App State Changed. Is Active:", isActive);
+            if (!isActive) {
+                // Pause ALL sound objects to be safe
+                Object.values(sounds).forEach(s => {
+                    if (s && typeof s.pause === 'function') s.pause();
+                });
+            } else {
+                // Resume background music if enabled
+                if (appSettings.musicEnabled && sounds.bg) {
+                    sounds.bg.play().catch(() => { });
+                }
             }
         });
     }
@@ -375,40 +385,62 @@ document.addEventListener('DOMContentLoaded', async () => {
     const googleLoginBtn = document.getElementById('google-login-btn');
     if (googleLoginBtn) {
         googleLoginBtn.onclick = async () => {
+            if (googleLoginBtn.disabled) return; // Prevent double clicks
+
             const originalText = googleLoginBtn.innerHTML;
             googleLoginBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> جاري التحقق...';
             googleLoginBtn.disabled = true;
 
+            // Show a simple processing overlay if it exists
+            const showLoading = (show) => {
+                const loader = document.getElementById('loader');
+                if (loader) {
+                    if (show) {
+                        loader.classList.remove('hidden');
+                        loader.querySelector('p').textContent = 'جاري تسجيل الدخول...';
+                    } else {
+                        loader.classList.add('hidden');
+                    }
+                }
+            };
+
             const isNative = window.Capacitor && window.Capacitor.isNativePlatform();
-            const isMobileUA = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            const isMobileApp = isNative || (window.location.protocol === 'file:' && isMobileUA);
 
             try {
-                if (isNative) {
-                    // Mobile Native Google Login via capawesome reliable plugin
-                    const result = await window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle({ useCredentialManager: false });
-                    const credential = GoogleAuthProvider.credential(result.credential?.idToken);
-                    await signInWithCredential(auth, credential);
-                    loginModal.classList.add('hidden');
+                if (isNative && window.Capacitor.Plugins && window.Capacitor.Plugins.FirebaseAuthentication) {
+                    // Mobile Native Google Login
+                    showLoading(true);
+                    const result = await window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle({
+                        useCredentialManager: false
+                    });
+
+                    if (result && result.credential) {
+                        const credential = GoogleAuthProvider.credential(result.credential.idToken);
+                        await signInWithCredential(auth, credential);
+                        loginModal.classList.add('hidden');
+                        showToast("تم تسجيل الدخول بنجاح");
+                    }
                 } else {
-                    // Web Google Login
+                    // Web or Electron Flow
                     await signInWithPopup(auth, googleProvider);
                     loginModal.classList.add('hidden');
                 }
             } catch (error) {
                 console.error("Google login error:", error);
 
-                // Specific error handling for Capacitor
-                if (isNative && error.message && error.message.includes('NOT_INITIALIZED')) {
-                    showError("مشكلة في إعدادات جوجل. يرجى مراجعة مدير النظام.");
-                } else if (error.code === 'auth/popup-closed-by-user') {
-                    // User closed popup, don't show error toast
-                } else {
-                    showError("فشل الدخول: " + (error.message || error));
+                // Friendly error messages
+                let errorMsg = "حدث خطأ أثناء تسجيل الدخول";
+                if (error.code === 'auth/popup-closed-by-user') return; // User closed it, ignore
+                if (error.message && error.message.includes('NOT_INITIALIZED')) {
+                    errorMsg = "مشكلة في إعدادات النظام. يرجى مراجعة المدير.";
                 }
+
+                showError(errorMsg);
+                showToast(errorMsg, 'error');
             } finally {
                 googleLoginBtn.innerHTML = originalText;
                 googleLoginBtn.disabled = false;
+                showLoading(false);
             }
         };
     }

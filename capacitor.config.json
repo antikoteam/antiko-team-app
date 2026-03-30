@@ -1,6 +1,6 @@
 {
     "appId": "com.antikoteam.app",
-    "appName": "Antiko Team App",
+    "appName": "Antiko",
     "webDir": "www",
     "bundledWebRuntime": false,
     "plugins": {
