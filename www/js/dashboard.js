@@ -1,5 +1,12 @@
 import { auth, db, onAuthStateChanged, collection, getDocs, getDoc, doc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, onSnapshot, where, writeBatch } from "./firebase-config.js";
 
+// --- GLOBAL ERROR HANDLER ---
+window.onerror = function (msg, url, line, col, error) {
+    console.error(`GLOBAL ERROR: ${msg} at ${url}:${line}`);
+    // Optional: alert(`Error: ${msg}\nLine: ${line}\nPlease check logs.`);
+    return false;
+};
+
 // --- GLOBAL DASHBOARD STATE ---
 let allServices = [];
 let currentService = null;
@@ -7,8 +14,84 @@ let activeChatUserId = null;
 let unsubActiveChat = null;
 let unsubTicketsList = null;
 
-// Initializations that don't need the DOM can run immediately
-console.log("Antiko: Dashboard Script Loaded (Module Scope)");
+// --- CRITICAL HELPERS (Defined early for window. usage) ---
+window.showToast = function (msg, type = "success") {
+    console.log(`[Toast ${type}]: ${msg}`);
+    let toast = document.getElementById('antiko-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'antiko-toast';
+        toast.style.cssText = `
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            padding: 12px 25px; border-radius: 12px; z-index: 100000;
+            font-family: 'Alexandria', sans-serif; font-size: 0.95rem; font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: opacity 0.3s, bottom 0.3s;
+            display: flex; align-items: center; gap: 10px; color: #fff;
+        `;
+        document.body.appendChild(toast);
+    }
+    toast.style.background = type === "error" ? "linear-gradient(135deg, #ff003c, #8a0303)" : "linear-gradient(135deg, #00ff88, #008a4a)";
+    toast.innerHTML = (type === "error" ? '<i class="ph-fill ph-warning-circle"></i> ' : '<i class="ph-fill ph-check-circle"></i> ') + msg;
+    toast.style.opacity = "1";
+    toast.style.bottom = "50px";
+
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.bottom = "30px";
+    }, 3000);
+};
+
+window.openModal = function (id) {
+    console.log("Antiko: Attempting to open modal:", id);
+    const m = document.getElementById(id);
+    if (m) {
+        m.classList.remove('hidden');
+        m.style.display = 'flex';
+        console.log("Modal opened successfully.");
+    } else {
+        console.error("Modal element not found:", id);
+    }
+};
+
+window.closeModal = function (id) {
+    const m = document.getElementById(id);
+    if (m) {
+        m.classList.add('hidden');
+        m.style.display = 'none';
+    }
+};
+
+window.openAdminModal = function () {
+    window.openModal('admin-add-modal');
+};
+
+console.log("Antiko: Dashboard Script Initializing...");
+
+// --- ADMIN SYSTEM (Top Level) ---
+let adminEmails = [
+    "karemkoko257koko@gmail.com",
+    "omaranter.abdallah@gmail.com",
+    "antiko.cb40b@gmail.com",
+    "admin257@gmail.com",
+    "kareem9989193@gmail.com",
+    "zyadwzyry0@gmail.com",
+    "b35435573@gmail.com",
+    "rsam64833@gmail.com"
+];
+
+async function loadDynamicAdmins() {
+    try {
+        console.log("Antiko: Fetching dynamic admins...");
+        const snap = await getDocs(collection(db, "admins"));
+        const dynamicList = snap.docs.map(doc => doc.data().email.toLowerCase());
+        adminEmails = [...new Set([...adminEmails, ...dynamicList])];
+        console.log("Admins loaded in Dashboard module:", adminEmails);
+    } catch (e) {
+        console.error("Error loading dynamic admins in dashboard:", e);
+    }
+}
+loadDynamicAdmins();
+
 
 // Helper: Safe JSON stringify for onclick attributes
 function safeJson(obj) { return JSON.stringify(obj).replace(/'/g, "&apos;"); }
@@ -149,15 +232,8 @@ function addSafeListener(id, event, handler) {
     }
 }
 
-// Global Modal Helpers
-window.openModal = function (id) {
-    const m = document.getElementById(id);
-    if (m) m.classList.remove('hidden');
-};
-window.closeModal = function (id) {
-    const m = document.getElementById(id);
-    if (m) m.classList.add('hidden');
-};
+// CRITICAL: Modal helpers were moved to the top of the file
+// Modal close moved to top
 
 // Navigation & Logic Initialization
 addSafeListener('admin-chat-back-btn', 'click', () => {
@@ -1945,7 +2021,7 @@ async function initDashboard() {
     const initBtn = document.getElementById('init-db-btn');
     if (initBtn && auth.currentUser) {
         const adminEmail = (auth.currentUser.email || "").toLowerCase();
-        if (adminEmail === 'karemkoko257koko@gmail.com' || adminEmail === 'admin257@gmail.com') {
+        if (adminEmails.includes(adminEmail)) {
             initBtn.classList.remove('hidden');
         } else {
             initBtn.classList.add('hidden');
@@ -2101,8 +2177,166 @@ function navigateToSection(sectionId) {
         if (sectionId === 'settings' && typeof loadSettings === 'function') loadSettings();
         if (sectionId === 'home') loadStats();
         if (sectionId === 'support-tickets' && typeof loadAdminTickets === 'function') loadAdminTickets();
+        if (sectionId === 'admins-management') loadAdmins();
+        if (sectionId === 'app-flags') loadAppFlags();
     }
 }
+
+
+// ADMINS MANAGEMENT OPEN MODAL moved to top
+
+async function loadAdmins() {
+    console.log("Antiko: Loading Admins List...");
+    const tbody = document.getElementById('admins-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="3" class="text-center"><i class="ph ph-spinner ph-spin"></i> جاري التحميل...</td></tr>';
+    try {
+        // Removed orderBy to prevent potential hanging if index is missing
+        const q = query(collection(db, "admins"));
+        const snap = await getDocs(q);
+        tbody.innerHTML = '';
+        if (snap.empty) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center">لا يوجد مشرفون مضافون حالياً.</td></tr>';
+            return;
+        }
+        snap.forEach(docSnap => {
+            const data = docSnap.data();
+            const id = docSnap.id;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td data-label="البريد الإلكتروني" dir="ltr" style="text-align: right;">${data.email}</td>
+                <td data-label="تاريخ الإضافة">${data.createdAt ? new Date(data.createdAt).toLocaleDateString('ar-EG') : 'قديماً'}</td>
+                <td data-label="التحكم">
+                    <button class="action-btn delete" onclick="deleteAdmin('${id}', '${data.email}')" title="حذف">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (e) {
+        console.error("LOAD ADMINS ERROR:", e);
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color:var(--neon-red);">حدث خطأ أثناء تحميل البيانات. يرجى مراجعة الكونسول.</td></tr>';
+        showToast("خطأ في تحميل قائمة المشرفين", "error");
+    }
+}
+window.loadAdmins = loadAdmins;
+
+addSafeListener('admin-add-form', 'submit', async (e) => {
+    e.preventDefault();
+    const emailInput = document.getElementById('new-admin-email');
+    if (!emailInput) return;
+    const email = emailInput.value.trim().toLowerCase();
+    if (!email) return;
+    const btn = document.getElementById('save-admin-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'جاري الإضافة...';
+    }
+    try {
+        await addDoc(collection(db, "admins"), {
+            email: email,
+            createdAt: new Date().getTime()
+        });
+        showToast("تم إضافة المشرف بنجاح ✅");
+        closeModal('admin-add-modal');
+        const form = document.getElementById('admin-add-form');
+        if (form) form.reset();
+        loadAdmins();
+    } catch (e) {
+        console.error(e);
+        showToast("فشل في إضافة المشرف", "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'إضافة الآن';
+        }
+    }
+});
+
+async function deleteAdmin(id, email) {
+    if (!confirm(`هل أنت متأكد من حذف المشرف ${email}؟`)) return;
+    try {
+        await deleteDoc(doc(db, "admins", id));
+        showToast("تم حذف المشرف بنجاح 🗑️");
+        loadAdmins();
+    } catch (e) {
+        console.error(e);
+        showToast("فشل في حذف المشرف", "error");
+    }
+}
+window.deleteAdmin = deleteAdmin;
+
+// ==========================================
+// APP FLAGS / SYSTEM VARIABLES LOGIC
+// ==========================================
+async function loadAppFlags() {
+    console.log("Antiko: Loading App Flags...");
+    try {
+        const docSnap = await getDoc(doc(db, "settings", "app_flags"));
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const setCheck = (id, val) => { const el = document.getElementById(id); if (el) el.checked = val; };
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+
+            setCheck('flag-maintenanceMode', data.maintenanceMode || false);
+            setVal('flag-maintenanceMsg', data.maintenanceMsg || '');
+            setCheck('flag-protectionEnabled', data.protectionEnabled !== false);
+            setCheck('flag-aiVisible', data.aiVisible !== false);
+            setCheck('flag-orderSound', data.orderSound !== false);
+            setVal('flag-siteUrl', data.siteUrl || '');
+            setVal('flag-siteBio', data.siteBio || '');
+            setVal('flag-adminWa', data.adminWa || '');
+        } else {
+            console.log("Antiko: No app flags found in DB.");
+        }
+    } catch (e) {
+        console.error("LOAD APP FLAGS ERROR:", e);
+    }
+}
+window.loadAppFlags = loadAppFlags;
+
+async function saveAppFlags() {
+    console.log("Antiko: Saving App Flags...");
+    const btn = document.querySelector('#section-app-flags .premium-btn');
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> جاري الحفظ...';
+    }
+
+    const data = {
+        maintenanceMode: document.getElementById('flag-maintenanceMode')?.checked || false,
+        maintenanceMsg: document.getElementById('flag-maintenanceMsg')?.value || '',
+        protectionEnabled: document.getElementById('flag-protectionEnabled')?.checked || false,
+        aiVisible: document.getElementById('flag-aiVisible')?.checked || false,
+        orderSound: document.getElementById('flag-orderSound')?.checked || false,
+        siteUrl: document.getElementById('flag-siteUrl')?.value || '',
+        siteBio: document.getElementById('flag-siteBio')?.value || '',
+        adminWa: document.getElementById('flag-adminWa')?.value || '',
+        updatedAt: new Date().getTime()
+    };
+
+    try {
+        await setDoc(doc(db, "settings", "app_flags"), data, { merge: true });
+        showToast("تم حفظ متغيرات النظام بنجاح! ✨");
+        if (btn) {
+            btn.innerHTML = '<i class="ph ph-check"></i> تم الحفظ';
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }, 2000);
+        }
+    } catch (e) {
+        console.error("SAVE APP FLAGS ERROR:", e);
+        showToast("فشل في حفظ البيانات", "error");
+        if (btn) {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    }
+}
+window.saveAppFlags = saveAppFlags;
 
 // --- Dashboard Initialization (Post-Load) ---
 window.loadAdminTickets();
@@ -2112,8 +2346,6 @@ setTimeout(() => {
     const dv = document.getElementById('dashboard-view');
     if (dv && !dv.classList.contains('hidden')) {
         console.log("Antiko: Failsafe init triggered.");
-        if (typeof initDashboard === 'function') {
-            initDashboard();
-        }
+        if (typeof initDashboard === 'function') initDashboard();
     }
 }, 3000);

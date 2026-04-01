@@ -632,6 +632,12 @@
                 <a class="menu-item" data-section="support-tickets">
                     <i class="ph ph-chat-centered-text"></i> تذاكر الدعم
                 </a>
+                <a class="menu-item" data-section="admins-management">
+                    <i class="ph ph-shield-check"></i> إدارة المشرفين
+                </a>
+                <a class="menu-item" data-section="app-flags">
+                    <i class="ph ph-flag-banner"></i> متغيرات النظام
+                </a>
             </nav>
         </aside>
 
@@ -1145,7 +1151,183 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Section: Admins Management -->
+            <section id="section-admins-management" class="dashboard-section hidden">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">إدارة المشرفين</h1>
+                    <button class="premium-btn" onclick="openAdminModal()">
+                        <i class="ph ph-plus"></i> إضافة مشرف جديد
+                    </button>
+                </div>
+
+                <div class="glass-card" style="margin-top: 20px;">
+                    <div class="card-edge"></div>
+                    <div class="card-inner" style="padding: 20px;">
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                            المشرفون المضافون هنا يمكنهم الوصول للوحة التحكم بالكامل. تأكد من إدخال البريد الإلكتروني
+                            الصحيح.
+                        </p>
+                        <div class="data-table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>البريد الإلكتروني</th>
+                                        <th>تاريخ الإضافة</th>
+                                        <th>التحكم</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admins-tbody">
+                                    <tr>
+                                        <td colspan="3" class="text-center">جاري التحميل...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: App Flags -->
+            <section id="section-app-flags" class="dashboard-section hidden">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">متغيرات النظام (العلامات)</h1>
+                    <button class="premium-btn" onclick="saveAppFlags()">
+                        <i class="ph ph-floppy-disk"></i> حفظ كافة التغييرات
+                    </button>
+                </div>
+
+                <div class="grid-cards"
+                    style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+                    <!-- Maintenance Mode -->
+                    <div class="glass-card">
+                        <div class="card-edge"></div>
+                        <div class="card-inner" style="padding: 20px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                                <div>
+                                    <h3 style="color: #fff; margin-bottom: 5px;">وضع الصيـانة</h3>
+                                    <p style="color: var(--text-muted); font-size: 0.8rem;">إغلاق الموقع للصيانة العامة
+                                    </p>
+                                </div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="flag-maintenanceMode">
+                                    <label for="flag-maintenanceMode"></label>
+                                </div>
+                            </div>
+                            <input type="text" id="flag-maintenanceMsg" class="form-control"
+                                placeholder="رسالة الصيانة التي ستظهر للعملاء">
+                        </div>
+                    </div>
+
+                    <!-- Protection System -->
+                    <div class="glass-card">
+                        <div class="card-edge"></div>
+                        <div class="card-inner" style="padding: 20px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                                <div>
+                                    <h3 style="color: #fff; margin-bottom: 5px;">نظام الحماية</h3>
+                                    <p style="color: var(--text-muted); font-size: 0.8rem;">منع النسخ والبحث (Inspected)
+                                    </p>
+                                </div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="flag-protectionEnabled" checked>
+                                    <label for="flag-protectionEnabled"></label>
+                                </div>
+                            </div>
+                            <p style="color: var(--text-muted); font-size: 0.75rem;">يمنع هذا الخيار الضغط بالزر الأيمن
+                                واختصارات المطورين ونبذ النسخ.</p>
+                        </div>
+                    </div>
+
+                    <!-- AI Assistant Visibility -->
+                    <div class="glass-card">
+                        <div class="card-edge"></div>
+                        <div class="card-inner" style="padding: 20px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                                <div>
+                                    <h3 style="color: #fff; margin-bottom: 5px;">المساعد الذكي (AI)</h3>
+                                    <p style="color: var(--text-muted); font-size: 0.8rem;">إظهار أو إخفاء أيقونة
+                                        المساعد</p>
+                                </div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="flag-aiVisible" checked>
+                                    <label for="flag-aiVisible"></label>
+                                </div>
+                            </div>
+                            <p style="color: var(--text-muted); font-size: 0.75rem;">إلغاء التفعيل سيؤدي لإخفاء زر
+                                المساعد الذكي من كافة صفحات الموقع.</p>
+                        </div>
+                    </div>
+
+                    <!-- Order Sound Effects -->
+                    <div class="glass-card">
+                        <div class="card-edge"></div>
+                        <div class="card-inner" style="padding: 20px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                                <div>
+                                    <h3 style="color: #fff; margin-bottom: 5px;">صوت الطلبات</h3>
+                                    <p style="color: var(--text-muted); font-size: 0.8rem;">تنبيه صوتي عند وصول طلب جديد
+                                    </p>
+                                </div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="flag-orderSound" checked>
+                                    <label for="flag-orderSound"></label>
+                                </div>
+                            </div>
+                            <p style="color: var(--text-muted); font-size: 0.75rem;">تأكد من بقاء المتصفح مفتوحاً
+                                لاستقبال التنبيهات الصوتية.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="margin-top: 25px;">
+                    <div class="card-edge"></div>
+                    <div class="card-inner" style="padding: 20px;">
+                        <h3 style="color: var(--neon-red); margin-bottom: 15px;">خصائص عامة (النظام)</h3>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">رابط الموقع الرسمي (للمشاركات)</label>
+                                <input type="text" id="flag-siteUrl" class="form-control"
+                                    placeholder="https://antiko-team.web.app">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">بايو الموقع للمساعد (AI Context)</label>
+                                <input type="text" id="flag-siteBio" class="form-control"
+                                    placeholder="أنتيكو هو فريق متخصص في وكالات الشحن والخدمات التقنية">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">رقم واتساب الدعم (Admin WhatsApp)</label>
+                                <input type="text" id="flag-adminWa" class="form-control" placeholder="201012345678"
+                                    dir="ltr">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
+    </div>
+
+    <!-- Modal: Add Admin -->
+    <div id="admin-add-modal" class="modal-overlay hidden" style="z-index: 3000;">
+        <div class="modal" style="max-width: 400px; padding: 30px;">
+            <button class="modal-close" onclick="closeModal('admin-add-modal')"><i class="ph ph-x"></i></button>
+            <h2 class="modal-title">إضافة مشرف جديد</h2>
+            <form id="admin-add-form">
+                <div class="form-group">
+                    <label class="form-label">البريد الإلكتروني</label>
+                    <input type="email" id="new-admin-email" class="form-control" placeholder="admin@example.com"
+                        required dir="ltr">
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="premium-btn w-100" id="save-admin-btn">إضافة الآن</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script type="module" src="js/fix-db.js"></script>
@@ -1806,10 +1988,10 @@
         </div>
     </nav>
 
-    <script type="module" src="js/app.js?v=2.0.5"></script>
-    <script type="module" src="js/dashboard.js?v=2.0.5"></script>
-    <script type="module" src="js/ai-chat.js"></script>
-    <script src="js/animations.js"></script>
+    <script type="module" src="js/app.js?v=2.0.6"></script>
+    <script type="module" src="js/dashboard.js?v=2.0.6"></script>
+    <script type="module" src="js/ai-chat.js?v=2.0.6"></script>
+    <script src="js/animations.js?v=2.0.6"></script>
 
 </body>
 

@@ -380,6 +380,10 @@
     transition: transform 0.3s ease;
 }
 
+.saving-indicator.show {
+    transform: translateY(0);
+}
+
 .admin-nav-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
