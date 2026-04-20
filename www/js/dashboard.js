@@ -76,7 +76,9 @@ let adminEmails = [
     "kareem9989193@gmail.com",
     "zyadwzyry0@gmail.com",
     "b35435573@gmail.com",
-    "rsam64833@gmail.com"
+    "rsam64833@gmail.com",
+    "faresmanee3@gmail.com",
+    "ferrohq1@gmail.com"
 ];
 
 async function loadDynamicAdmins() {
@@ -871,6 +873,76 @@ async function loadTelegramCountries() {
     } catch (e) {
         console.error(e);
         tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color:var(--neon-red);">حدث خطأ أثناء جلب البيانات</td></tr>';
+    }
+}
+
+addSafeListener('telegram-country-form', 'submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('save-telegram-country-btn');
+    if (btn) btn.textContent = 'جاري الحفظ...';
+
+    const id = document.getElementById('telegram-country-id').value;
+    const rawFlag = document.getElementById('telegram-country-flag').value;
+    const finalFlagUrl = emojiToUrl(rawFlag);
+
+    const data = {
+        nameAr: document.getElementById('telegram-country-nameAr').value,
+        nameEn: document.getElementById('telegram-country-nameEn').value,
+        price: document.getElementById('telegram-country-price').value,
+        currency: document.getElementById('telegram-country-currency').value,
+        flagUrl: finalFlagUrl,
+        sortOrder: Number(document.getElementById('telegram-country-sort').value),
+        active: document.getElementById('telegram-country-active').checked
+    };
+
+    try {
+        if (id) {
+            await updateDoc(doc(db, "telegram_countries", id), data);
+        } else {
+            await addDoc(collection(db, "telegram_countries"), data);
+        }
+        const modal = document.getElementById('telegram-country-modal');
+        if (modal) modal.classList.add('hidden');
+        loadTelegramCountries();
+        document.getElementById('telegram-country-form').reset();
+        document.getElementById('telegram-country-id').value = '';
+        const flagLabel = document.getElementById('telegram-country-flag-name');
+        if (flagLabel) flagLabel.textContent = '';
+    } catch (error) {
+        console.error(error);
+        alert("حدث خطأ أثناء الحفظ");
+    } finally {
+        if (btn) btn.textContent = 'حفظ الرقم';
+    }
+});
+
+function editTelegramCountry(c) {
+    const modal = document.getElementById('telegram-country-modal');
+    if (!modal) return;
+    document.getElementById('telegram-country-id').value = c.id || '';
+    document.getElementById('telegram-country-nameAr').value = c.nameAr || '';
+    document.getElementById('telegram-country-nameEn').value = c.nameEn || '';
+    document.getElementById('telegram-country-price').value = c.price || 0;
+    document.getElementById('telegram-country-currency').value = c.currency || 'ج.م';
+    document.getElementById('telegram-country-flag').value = c.flagUrl || c.icon || '';
+    document.getElementById('telegram-country-sort').value = c.sortOrder || 0;
+    document.getElementById('telegram-country-active').checked = c.active !== false;
+    updateFlagLabel('telegram-country-flag');
+
+    const title = document.getElementById('telegram-country-modal-title');
+    if (title) title.textContent = 'تعديل الرقم';
+    modal.classList.remove('hidden');
+}
+
+async function deleteTelegramCountry(id) {
+    if (confirm("هل أنت متأكد من حذف هذا الرقم؟")) {
+        try {
+            await deleteDoc(doc(db, "telegram_countries", id));
+            loadTelegramCountries();
+        } catch (e) {
+            console.error(e);
+            alert("خطأ أثناء الحذف");
+        }
     }
 }
 
@@ -2185,27 +2257,54 @@ function navigateToSection(sectionId) {
 
 // ADMINS MANAGEMENT OPEN MODAL moved to top
 
+const baseAdmins = [
+    "karemkoko257koko@gmail.com",
+    "omaranter.abdallah@gmail.com",
+    "antiko.cb40b@gmail.com",
+    "admin257@gmail.com",
+    "kareem9989193@gmail.com",
+    "zyadwzyry0@gmail.com",
+    "b35435573@gmail.com",
+    "rsam64833@gmail.com",
+    "faresmanee3@gmail.com",
+    "ferrohq1@gmail.com"
+];
+
 async function loadAdmins() {
     console.log("Antiko: Loading Admins List...");
     const tbody = document.getElementById('admins-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="3" class="text-center"><i class="ph ph-spinner ph-spin"></i> جاري التحميل...</td></tr>';
+    
+    // 1. Render base admins first immediately
+    tbody.innerHTML = '';
+    baseAdmins.forEach(email => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td data-label="البريد الإلكتروني" dir="ltr" style="text-align: right;">${email}</td>
+            <td data-label="تاريخ الإضافة"><span class="badge success">أساسي (Hardcoded)</span></td>
+            <td data-label="التحكم">
+                <button class="action-btn" style="opacity:0.5; cursor:not-allowed;" title="لا يمكن حذفه"><i class="ph ph-lock"></i></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
     try {
-        // Removed orderBy to prevent potential hanging if index is missing
+        // 2. Try fetching dynamic admins from Firebase
         const q = query(collection(db, "admins"));
         const snap = await getDocs(q);
-        tbody.innerHTML = '';
-        if (snap.empty) {
-            tbody.innerHTML = '<tr><td colspan="3" class="text-center">لا يوجد مشرفون مضافون حالياً.</td></tr>';
-            return;
-        }
+        
         snap.forEach(docSnap => {
             const data = docSnap.data();
             const id = docSnap.id;
+            
+            // Skip visual duplicate if already in baseAdmins
+            if (data.email && baseAdmins.includes(data.email.toLowerCase())) return; 
+            
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td data-label="البريد الإلكتروني" dir="ltr" style="text-align: right;">${data.email}</td>
-                <td data-label="تاريخ الإضافة">${data.createdAt ? new Date(data.createdAt).toLocaleDateString('ar-EG') : 'قديماً'}</td>
+                <td data-label="تاريخ الإضافة">${data.createdAt ? new Date(data.createdAt).toLocaleDateString('ar-EG') : 'إضافي'}</td>
                 <td data-label="التحكم">
                     <button class="action-btn delete" onclick="deleteAdmin('${id}', '${data.email}')" title="حذف">
                         <i class="ph ph-trash"></i>
@@ -2216,14 +2315,16 @@ async function loadAdmins() {
         });
     } catch (e) {
         console.error("LOAD ADMINS ERROR:", e);
-        tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="color:var(--neon-red);">حدث خطأ أثناء تحميل البيانات. يرجى مراجعة الكونسول.</td></tr>';
-        showToast("خطأ في تحميل قائمة المشرفين", "error");
+        // Only show a small note instead of destroying the whole table
+        const errorTr = document.createElement('tr');
+        errorTr.innerHTML = '<td colspan="3" class="text-center" style="color:var(--neon-red); font-size:0.8rem;">يجب رفع قوانين (Rules) الفايربيس لرؤية الإضافات لتجنب Permission Denied. المشرفون الأساسيون يعملون بنجاح.</td>';
+        tbody.appendChild(errorTr);
     }
 }
 window.loadAdmins = loadAdmins;
 
-addSafeListener('admin-add-form', 'submit', async (e) => {
-    e.preventDefault();
+window.submitAdminForm = async function(e) {
+    if (e) e.preventDefault();
     const emailInput = document.getElementById('new-admin-email');
     if (!emailInput) return;
     const email = emailInput.value.trim().toLowerCase();
@@ -2243,14 +2344,22 @@ addSafeListener('admin-add-form', 'submit', async (e) => {
         const form = document.getElementById('admin-add-form');
         if (form) form.reset();
         loadAdmins();
-    } catch (e) {
-        console.error(e);
-        showToast("فشل في إضافة المشرف", "error");
+    } catch (err) {
+        console.error(err);
+        showToast("فشل: يجب تحديث قواعد الفايربيس (Rules) أولاً!", "error");
+        alert("لن تتم الإضافة بسبب أن سيرفر الفايربيس رفض العملية! يجب عليك الذهاب للـ Firebase Console وتعديل الـ Rules لتسمح بالكتابة في الـ admins كما أشرت لك سابقاً.");
     } finally {
         if (btn) {
             btn.disabled = false;
             btn.textContent = 'إضافة الآن';
         }
+    }
+};
+
+document.addEventListener('submit', function(e) {
+    if (e.target && e.target.id === 'admin-add-form') {
+        e.preventDefault();
+        window.submitAdminForm(e);
     }
 });
 

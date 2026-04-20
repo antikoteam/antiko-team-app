@@ -1,161 +1,94 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سياسة الخصوصية - Antiko Team App</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;800&family=Orbitron:wght@600;800;900&family=Anton&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <title>سياسة الخصوصية - Antiko</title>
     <style>
         body {
-            background-color: var(--bg-dark, #000);
-            color: #1a0000;
-            font-family: 'Alexandria', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            line-height: 1.8;
-            overflow-x: hidden;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
         }
-
         .container {
             max-width: 800px;
-            margin: 40px auto;
-            padding: 40px;
-            background: #fffafa;
-            /* Light Reddish White */
-            border: 1px solid rgba(138, 3, 3, 0.2);
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(138, 3, 3, 0.1);
-            color: #1a0000;
-            /* Reddish Black */
+            margin: 50px auto;
+            padding: 30px;
+            background: #111;
+            border-radius: 12px;
+            border: 1px solid #333;
         }
-
         h1 {
-            color: #4a0000;
-            /* Dark Deep Red */
+            color: #cc0030;
             text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 800;
-        }
-
-        .last-updated {
-            text-align: center;
-            color: #664444;
-            font-size: 0.95rem;
             margin-bottom: 40px;
-            font-weight: 600;
+            font-size: 2.2rem;
         }
-
-        h2 {
-            color: #330000;
-            /* Reddish Black */
-            border-bottom: 2px solid rgba(138, 3, 3, 0.1);
+        h3 {
+            color: #ff4d79;
+            margin-top: 30px;
+            font-size: 1.3rem;
+            border-bottom: 1px solid #333;
             padding-bottom: 10px;
-            margin-top: 40px;
-            font-size: 1.6rem;
-            font-weight: 700;
         }
-
-        p,
-        ul {
-            color: #1a0000;
-            /* Reddish Black */
+        p {
             font-size: 1.05rem;
-            font-weight: 400;
+            line-height: 1.8;
+            color: #ccc;
         }
-
-        ul {
-            padding-right: 25px;
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #777;
+            font-size: 0.9rem;
         }
-
-        li {
-            margin-bottom: 12px;
-        }
-
-        .back-btn {
+        .btn-back {
             display: inline-block;
-            margin-top: 40px;
-            padding: 15px 30px;
-            background: #1a0000;
+            margin-bottom: 20px;
             color: #fff;
             text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-align: center;
-            width: 100%;
-            box-sizing: border-box;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            background: #cc0030;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.95rem;
         }
-
-        .back-btn:hover {
-            background: #4a0000;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(74, 0, 0, 0.3);
+        .btn-back:hover {
+            background: #ff003c;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
         }
     </style>
 </head>
-
 <body>
     <div class="container">
-        <h1>سياسة الخصوصية واستخدام البيانات</h1>
-        <div class="last-updated">آخر تحديث: 25 مارس 2026</div>
+        <a href="index.html" class="btn-back">← العودة للتطبيق</a>
+        <h1>سياسة الخصوصية (Privacy Policy)</h1>
 
-        <p>مرحباً بك في تطبيق وموقع فريق (Antiko Team). التزاماً منا بحماية خصوصيتك ولتوافق تطبيقنا مع سياسات متجر
-            Google Play، نوضح في هذه الصفحة كيف نقوم بجمع، استخدام، وحماية بياناتك الشخصية.</p>
+        <h3>1. البيانات التي نجمعها</h3>
+        <p>نجمع بريدك الإلكتروني واسمك عند التسجيل (عبر Google أو البريد الإلكتروني) لتأمين حسابك ومشترياتك داخل التطبيق.</p>
 
-        <h2>1. البيانات التي نجمعها</h2>
-        <p>عند استخدامك لتطبيقنا، قد نقوم بجمع المعلومات التالية لمساعدتنا في تقديم خدمة أفضل:</p>
-        <ul>
-            <li><strong>معلومات الحساب:</strong> إذا قررت التسجيل أو تسجيل الدخول (عبر Google أو البريد الإلكتروني)،
-                سنحتفظ ببريدك الإلكتروني واسمك الرمزي للتعرف على حسابك وتأمين مشترياتك.</li>
-            <li><strong>بيانات الدعم الفني:</strong> نحتفظ بسجلات المحادثات التي تجريها مع فريق الدعم لحل مشاكلك وخدمتك
-                بسرعة.</li>
-            <li><strong>بيانات الأجهزة:</strong> معلومات تقنية عامة (مثل نوع الجهاز أو نظام التشغيل) لضمان توافق وجودة
-                عمل التطبيق.</li>
-        </ul>
+        <h3>2. كيف نستخدم بياناتك؟</h3>
+        <p>تستخدم البيانات التي يتم جمعها لإدارة حسابك، تخصيص إعداداتك، وتقديم الدعم الفني السريع عبر نظام التذاكر. لا نستخدم بياناتك لأي أغراض أخرى غير معلنة.</p>
 
-        <h2>2. كيف نستخدم بياناتك؟</h2>
-        <p>بياناتك تستخدم للأغراض الأساسية التالية فقط:</p>
-        <ul>
-            <li>تفعيل وإدارة حسابك الشخصي وربطه بطلباتك.</li>
-            <li>تحسين تجربة استخدامك داخل التطبيق وتخصيص إعداداتك.</li>
-            <li>توفير المساعدة والدعم الفني السريع عبر نظام التذاكر.</li>
-        </ul>
+        <h3>3. الحماية والأمان</h3>
+        <p>نستخدم تقنيات Google Firebase لتخزين البيانات بأمان وتشفير عالي المستوى. لا نقوم ببيع أو مشاركة بياناتك مع أي طرف أو جهة خارجية تحت أي ظرف.</p>
 
-        <h2>3. خدمات الطرف الثالث (Google & Firebase)</h2>
-        <p>يستخدم تطبيقنا خدمات مُقدمة من جوجل (Firebase) لتخزين البيانات بأمان وتوثيق هويات المستخدمين. توافقاً مع
-            سياسة جوجل:</p>
-        <ul>
-            <li>لا نبيع أو نشارك بياناتك أو بريدك الإلكتروني مع أي جهة خارجية أو معلنين.</li>
-            <li>تسجيل الدخول باستخدام (Google Sign-In) يتم في بيئة مشفرة ومؤمنة تماماً من Google نفسها.</li>
-            <li>بيانات قاعدة البيانات محفوظة على خوادم سحابية ذات تشفير أمني عالي المُستوى (Cloud Firestore).</li>
-        </ul>
+        <h3>4. حذف البيانات</h3>
+        <p>يحق لك في أي وقت المطالبة بحذف حسابك نهائياً وكافة بياناتك المرتبطة به عبر فتح تذكرة دعم بداخل التطبيق، أو عبر التواصل معنا، وسيتم مسح كافة سجلاتك من خوادمنا بشكل فوري.</p>
 
-        <h2>4. الحماية والأمان</h2>
-        <p>تطبيقنا يطبق قواعد أمنية صارمة (Security Rules) تمنع أي مستخدم من الإطلاع على بيانات مستخدم آخر، ولا يحق لأي
-            شخص سوى لإدارة الفريق الوصول لبيانات العمليات لحل المشاكل.</p>
+        <p style="margin-top: 40px; color: #ff003c; font-weight: bold; text-align: center;">
+            باستخدامك للتطبيق، أنت توافق على شروط الخدمة وسياسة الخصوصية الخاصة بـ فـريق (Antiko Team).
+        </p>
 
-        <h2>5. حقوق المستخدم والمطالبة بالحذف</h2>
-        <p>كُمستخدم لتطبيق Antiko،يحق لك في أي وقت المطالبة بحذف حسابك نهائياً من قاعدة بياناتنا وما يتبعه من معلومات
-            اتصال. للقيام بذلك، يمكنك إرسال طلب عبر تذاكر الدعم الفني بداخل التطبيق، وسيتم مسح بياناتك نهائياً بإجراء
-            برمجي من قِبل الإدارة.</p>
-
-        <h2>6. التعديلات على هذه السياسة</h2>
-        <p>يحتفظ فريق Antiko بالحق في تعديل أجزاء من هذه السياسة حسب ما تتطلبه شروط (Google Play) أو أي إضافات جديدة
-            للخدمات، سيتم تحديث تاريخ الصفحة عند القيام بأي تغيير جوهري.</p>
-
-        <a href="index.html" class="back-btn">رجوع لتطبيق Antiko</a>
+        <div class="footer">
+            &copy; 2026 Antiko Team. جميع الحقوق محفوظة.
+        </div>
     </div>
 </body>
-
 </html>

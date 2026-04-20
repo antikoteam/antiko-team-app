@@ -112,7 +112,9 @@ let adminEmails = [
     "kareem9989193@gmail.com",
     "zyadwzyry0@gmail.com",
     "b35435573@gmail.com",
-    "rsam64833@gmail.com"
+    "rsam64833@gmail.com",
+    "faresmanee3@gmail.com",
+    "ferrohq1@gmail.com"
 ];
 
 async function loadDynamicAdmins() {
@@ -241,6 +243,9 @@ if (soundToggle) soundToggle.checked = appSettings.soundEnabled;
 if (bgVolumeSlider) {
     bgVolumeSlider.value = appSettings.bgMusicVolume;
     if (bgVolumeLabel) bgVolumeLabel.textContent = `${appSettings.bgMusicVolume}%`;
+    if (sounds.bg) {
+        sounds.bg.volume = appSettings.bgMusicVolume / 100;
+    }
 }
 if (bgSoundToggle) bgSoundToggle.checked = appSettings.musicEnabled;
 
@@ -252,7 +257,10 @@ const saveSettings = () => {
 let bgAudio = null;
 const updateBgMusic = () => {
     if (!sounds.bg) return;
-    // توحيد الحالة مع زرار الإعدادات
+    
+    // Apply Volume
+    sounds.bg.volume = (appSettings.bgMusicVolume !== undefined ? appSettings.bgMusicVolume : 50) / 100;
+    
     if (appSettings.musicEnabled) {
         sounds.bg.play().catch(e => {
             console.log("Audio blocked, waiting for click/touch.", e);
@@ -275,22 +283,34 @@ const updateBgMusic = () => {
 updateBgMusic();
 
 // App State Change (Pause music on background)
+const pauseAudioGlobally = () => {
+    Object.values(sounds).forEach(s => {
+        if (s && typeof s.pause === 'function') s.pause();
+    });
+};
+
+const resumeAudioGlobally = () => {
+    if (appSettings.musicEnabled && sounds.bg) {
+        sounds.bg.play().catch(() => { });
+    }
+};
+
+// For native Capacitor builds
 if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
     window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
-        console.log("App State Changed. Is Active:", isActive);
-        if (!isActive) {
-            // Pause ALL sound objects to be safe
-            Object.values(sounds).forEach(s => {
-                if (s && typeof s.pause === 'function') s.pause();
-            });
-        } else {
-            // Resume background music if enabled
-            if (appSettings.musicEnabled && sounds.bg) {
-                sounds.bg.play().catch(() => { });
-            }
-        }
+        if (!isActive) pauseAudioGlobally();
+        else resumeAudioGlobally();
     });
 }
+
+// For standard browser PWA builds
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        pauseAudioGlobally();
+    } else {
+        resumeAudioGlobally();
+    }
+});
 
 
 // --- App Flags / System State ---
@@ -1024,7 +1044,7 @@ if (bgVolumeSlider) {
 
 if (bgSoundToggle) {
     bgSoundToggle.addEventListener('change', (e) => {
-        appSettings.bgMusicEnabled = e.target.checked;
+        appSettings.musicEnabled = e.target.checked;
         saveSettings();
         updateBgMusic();
     });

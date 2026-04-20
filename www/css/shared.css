@@ -633,24 +633,41 @@ a {
     /* Space for bottom nav */
 }
 
-/* Announcements Box (The Plate) */
+/* Announcements Box (The Plate/Ribbon) */
 .announcement-wrapper {
     margin-top: 0px;
     margin-bottom: 25px;
-    animation: fadeUp 1s ease-out 0.2s both;
+    animation: unrollRibbonHorizontal 2.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     position: relative;
-    padding: 30px 20px;
-    min-height: 120px;
-    background: linear-gradient(135deg, #0d0d0d 0%, #1a0000 50%, #0d0d0d 100%);
-    border: 2px solid rgba(255, 0, 60, 0.7);
-    border-radius: 20px;
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 0, 60, 0.3);
+    background: linear-gradient(135deg, #cc0030 0%, #ff003c 50%, #cc0030 100%);
+    border: 2px solid #ff4d79;
+    border-radius: 12px;
+    box-shadow: 0 15px 30px rgba(255, 0, 60, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     width: 100%;
     box-sizing: border-box;
+    transform-origin: center;
+    opacity: 0;
+    min-height: 120px;
+    padding: 30px 20px;
+}
+
+@keyframes unrollRibbonHorizontal {
+    0% {
+        opacity: 0;
+        transform: scaleX(0);
+    }
+    50% {
+        opacity: 1;
+        transform: scaleX(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: scaleX(1);
+    }
 }
 
 .announcement-wrapper::before {
@@ -658,22 +675,21 @@ a {
     position: absolute;
     top: 0;
     left: 0;
-    width: 4px;
+    width: 10px;
     height: 100%;
-    background: #ff003c;
-    box-shadow: 0 0 10px #ff003c;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
 }
 
 .announcement-wrapper::after {
     content: '';
     position: absolute;
-    top: 50%;
-    right: 15px;
-    transform: translateY(-50%);
-    width: 30px;
-    height: 2px;
-    background: rgba(255, 0, 60, 0.5);
-    border-radius: 2px;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
 }
 
 .announcement-box {
@@ -683,12 +699,18 @@ a {
 
 .announcement-content {
     z-index: 1;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 800;
     color: #fff;
-    text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
     letter-spacing: 0.5px;
     text-align: center;
+    animation: fadeInText 1s ease 1.6s both;
+}
+
+@keyframes fadeInText {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 
 /* Section Titles */
@@ -734,7 +756,7 @@ a {
     border-radius: 8px;
     font-family: var(--font-body);
     font-size: 1rem;
-    transition: var(--transition-smooth);
+    transition: border-color 0.4s ease, box-shadow 0.4s ease, background-color 0.4s ease;
 }
 
 .form-control:focus {

@@ -1317,7 +1317,7 @@
         <div class="modal" style="max-width: 400px; padding: 30px;">
             <button class="modal-close" onclick="closeModal('admin-add-modal')"><i class="ph ph-x"></i></button>
             <h2 class="modal-title">إضافة مشرف جديد</h2>
-            <form id="admin-add-form">
+            <form id="admin-add-form" onsubmit="event.preventDefault(); window.submitAdminForm(event);">
                 <div class="form-group">
                     <label class="form-label">البريد الإلكتروني</label>
                     <input type="email" id="new-admin-email" class="form-control" placeholder="admin@example.com"
@@ -1483,6 +1483,10 @@
                         style="width: 20px; height: 20px; cursor:pointer;">
                 </div>
 
+                <div class="mt-4" style="text-align: left;">
+                    <button type="submit" class="premium-btn w-100" id="save-telegram-country-btn">حفظ الرقم</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1593,7 +1597,7 @@
     <!-- Modal: Game Options Selection -->
     <div id="game-options-modal" class="modal-overlay hidden" style="z-index: 2005;">
         <div class="modal glass-card"
-            style="max-width: 450px; padding: 0; background: rgba(10,10,15,0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);">
+            style="max-width: 450px; padding: 0; background: rgba(10,10,15,0.85); border: 1px solid rgba(255,255,255,0.1);">
             <div class="card-edge"></div>
             <button class="modal-close" onclick="closeModal('game-options-modal')"><i class="ph ph-x"></i></button>
 
@@ -1648,7 +1652,7 @@
     <!-- Smart Order Modal -->
     <div id="smart-order-modal" class="modal-overlay hidden" style="z-index: 2000;">
         <div class="modal slide-in glass-card"
-            style="max-width: 450px; padding: 0; background: rgba(10,10,15,0.85); backdrop-filter: blur(20px);">
+            style="max-width: 450px; padding: 0; background: rgba(10,10,15,0.85);">
             <div class="card-edge"></div>
             <button class="modal-close" onclick="closeModal('smart-order-modal')"
                 style="top: 20px; right: 20px; z-index: 10;"><i class="ph ph-x"></i></button>
@@ -1917,6 +1921,9 @@
                 <input type="checkbox" id="bg-sound-toggle" checked
                     style="width: 24px; height: 24px; accent-color: var(--neon-red); cursor: pointer;">
             </div>
+            <a href="privacy.html" class="premium-btn secondary w-100" style="padding: 12px; margin-bottom: 20px; display: block; text-decoration: none;">
+                <i class="ph ph-shield-check"></i> سياسة الخصوصية
+            </a>
 
             <button onclick="closeModal('settings-modal')" class="premium-btn w-100"
                 style="padding: 15px; margin-bottom: 10px;">
