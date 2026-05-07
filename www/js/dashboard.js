@@ -2020,14 +2020,12 @@ window.editTelegramCountry = editTelegramCountry;
 window.deleteTelegramCountry = deleteTelegramCountry;
 window.editBook = editBook;
 window.deleteBook = deleteBook;
-window.editGame = editGame;
-window.deleteGame = deleteGame;
+// editGame / deleteGame / resetGameForm removed — functions don't exist in this module
 window.deleteOrder = deleteOrder;
 window.loadServicesManagement = loadServicesManagement;
 window.loadStats = loadStats;
 window.editService = editService;
 window.deleteService = deleteService;
-window.resetGameForm = resetGameForm;
 window.cycleFlag = cycleFlag;
 window.updateFlagLabel = updateFlagLabel;
 window.editTeamMember = editTeamMember;
@@ -2407,7 +2405,7 @@ window.loadAppFlags = loadAppFlags;
 
 async function saveAppFlags() {
     console.log("Antiko: Saving App Flags...");
-    const btn = document.querySelector('#section-app-flags .premium-btn');
+    const btn = document.querySelector('#section-app-flags .dashboard-header .premium-btn');
     const originalHtml = btn ? btn.innerHTML : '';
     if (btn) {
         btn.disabled = true;

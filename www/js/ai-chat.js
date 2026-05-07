@@ -1,366 +1,636 @@
+// ==========================================
+// ANTIKO AI ASSISTANT — Full Module
+// ==========================================
+import { db, collection, getDocs, getDoc, doc, query, orderBy } from "./firebase-config.js";
 
-// Antiko AI Chat System - Antiko 💖
-// DeepSeek Powered Dynamic Engine with Site Knowledge
-import { db, getDoc, doc, collection, getDocs } from "./firebase-config.js";
+// --- Configuration ---
+const AI_CONFIG = {
+    apiUrl: "https://openrouter.ai/api/v1/chat/completions",
+    apiKey: "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",
+    model: "google/gemini-2.0-flash-001",
+    maxTokens: 1024,
+    temperature: 0.7
+};
 
-(function () {
-    const initChat = () => {
-        const chatToggle = document.getElementById('ai-chat-toggle');
-        const chatBox = document.getElementById('ai-chat-box');
-        const closeBtn = document.getElementById('close-ai-chat');
-        const chatInput = document.getElementById('ai-chat-input');
-        const sendBtn = document.getElementById('send-ai-msg');
-        const messagesContainer = document.getElementById('ai-chat-messages');
+// --- State ---
+let chatHistory = [];
+let isWaitingForResponse = false;
+let appContext = null; // Will be loaded from Firestore
 
-        if (!chatToggle || !chatBox) {
-            console.warn("AI Chat Elements not found");
-            return false;
-        }
-        // --- 1. Robust Environment Detection ---
-        const isNative = (window.Capacitor && window.Capacitor.isNativePlatform()) ||
-            window.location.protocol === 'capacitor:' ||
-            window.location.protocol === 'file:' ||
-            window.location.hostname === 'localhost' ||
-            window.location.hostname === '' ||
-            /Capacitor|iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+// --- DOM Elements ---
+const chatBox = document.getElementById("ai-chat-box");
+const chatMessages = document.getElementById("ai-chat-messages");
+const chatInput = document.getElementById("ai-chat-input");
+const sendBtn = document.getElementById("send-ai-msg");
+const toggleBtn = document.getElementById("ai-chat-toggle");
+const closeBtn = document.getElementById("close-ai-chat");
 
-        const isProductionWeb = !isNative && (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com'));
-
-        console.log("Antiko AI Init -> Native:", isNative, " | Prot:", window.location.protocol, " | Host:", window.location.hostname);
-
-        let showWelcomeMessage = () => {
-            appendMessage('ai', 'أهلاً بك يا فندم! أنا المساعد الذكي "أنتيكو".. أنا هنا عشان أرد على كل استفساراتك عن خدمات وأخبار فريق أنتيكو تيم. تحب تسأل عن إيه؟ ✨🌸');
-        };
-
-        if (isProductionWeb) {
-            console.log("Antiko AI: Production Web Mode.");
-        }
-
-        // Antiko's Brain 🧠 - Dynamic DeepSeek Engine with Site Consciousness
-        let conversationHistory = JSON.parse(localStorage.getItem('Antiko_history') || "[]");
-        let dynamicSystemPrompt = localStorage.getItem('Antiko_persona') || `أنت "أنتيكو"، المساعد الذكي لشركة وفريق عمل "أنتيكو تيم". كن ودوداً جداً واستخدم اللهجة المصرية الودودة.`;
-
-        // --- API Config State ---
-        let apiKeys = JSON.parse(localStorage.getItem('Antiko_keys') || "[]");
-        let apiBaseUrl = localStorage.getItem('Antiko_base_url') || "https://api.azy.ai/v1";
-        let apiModelName = localStorage.getItem('Antiko_model') || "gpt-3.5-turbo";
-        let currentKeyIndex = 0;
-
-        let siteKnowledge = "";
-        let isConfigSynced = false;
-
-        // Fetch Dynamic Persona & Site Information from Firestore
-        async function syncAiConfig() {
-            try {
-                // 1. Sync Persona & API Config
-                const snap = await getDoc(doc(db, "settings", "ai_config"));
-                if (snap.exists()) {
-                    const data = snap.data();
-
-                    if (data.system_prompt) {
-                        dynamicSystemPrompt = data.system_prompt;
-                        localStorage.setItem('Antiko_persona', dynamicSystemPrompt);
-                    }
-
-                    if (data.api_keys && Array.isArray(data.api_keys)) {
-                        apiKeys = data.api_keys;
-                        localStorage.setItem('Antiko_keys', JSON.stringify(apiKeys));
-                    }
-
-                    if (data.api_base_url) {
-                        apiBaseUrl = data.api_base_url;
-                        localStorage.setItem('Antiko_base_url', apiBaseUrl);
-                    }
-
-                    if (data.api_model_name) {
-                        apiModelName = data.api_model_name;
-                        localStorage.setItem('Antiko_model', apiModelName);
-                    }
-                }
-
-                // 2. Sync Site Knowledge (Services & Team)
-                try {
-                    const servicesSnap = await getDocs(collection(db, "services"));
-                    const teamSnap = await getDocs(collection(db, "team_members"));
-
-                    let knowledge = "\nمعلومات الموقع حالياً:\n";
-                    if (!servicesSnap.empty) {
-                        // Limit strongly to avoid too long prompt in GET url
-                        const servicesList = servicesSnap.docs.slice(0, 10).map(d => d.data().titleAr || d.data().name);
-                        knowledge += "الخدمات: " + servicesList.join('، ') + "\n";
-                    }
-                    if (!teamSnap.empty) {
-                        const teamList = teamSnap.docs.slice(0, 5).map(d => d.data().name);
-                        knowledge += "الفريق: " + teamList.join('، ') + "\n";
-                    }
-                    siteKnowledge = knowledge;
-                } catch (innerErr) {
-                    console.warn("Antiko Knowledge Sync Failed", innerErr);
-                }
-
-                console.log("Antiko: Personality & Site Knowledge Synced 🤖👁️✨");
-                isConfigSynced = true;
-            } catch (e) {
-                console.error("Antiko Primary Sync Error:", e);
-                isConfigSynced = true;
-            }
-        }
-
-        const configPromise = syncAiConfig();
-
-        // Toggle Chat
-        chatToggle.onclick = (e) => {
-            e.preventDefault();
-            chatBox.classList.toggle('hidden');
-            if (!chatBox.classList.contains('hidden')) {
-                chatInput.focus();
-                if (messagesContainer.children.length === 0) {
-                    if (conversationHistory.length > 0) {
-                        renderHistory();
-                    } else {
-                        showWelcomeMessage();
-                    }
-                }
-            }
-        };
-
-        function renderHistory() {
-            messagesContainer.innerHTML = "";
-            conversationHistory.forEach(msg => {
-                appendMessage(msg.role === 'user' ? 'user' : 'ai', msg.parts[0].text, false);
-            });
-            scrollToBottom();
-        }
-
-        if (closeBtn) {
-            closeBtn.onclick = () => {
-                chatBox.classList.add('hidden');
-            };
-        }
-
-        // Send Message
-        const sendMessage = async () => {
-            const text = chatInput.value.trim();
-            if (!text) return;
-
-            appendMessage('user', text);
-            chatInput.value = '';
-
-            const aiMsgDiv = appendMessage('ai', '<div class="typing-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>');
-
-            try {
-                if (!isConfigSynced) await configPromise;
-
-                const finalPrompt = (dynamicSystemPrompt + siteKnowledge).substring(0, 1500);
-                const response = await getAntikoResponse(text, finalPrompt);
-                aiMsgDiv.querySelector('.msg-content').innerHTML = response;
-            } catch (err) {
-                console.error("Antiko AI Error:", err);
-                aiMsgDiv.querySelector('.msg-content').textContent = `⚠️ عذراً، حصل خطأ في الاتصال: ${err.message}`;
-            }
-
-            scrollToBottom();
-        };
-
-        if (sendBtn) sendBtn.onclick = sendMessage;
-        if (chatInput) {
-            chatInput.onkeypress = (e) => {
-                if (e.key === 'Enter') sendMessage();
-            };
-        }
-
-        function appendMessage(type, content, save = true) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${type}`;
-
-            const now = new Date();
-            const timeStr = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
-
-            msgDiv.innerHTML = `
-                <div class="msg-content">${content}</div>
-                <div class="msg-time">${type === 'ai' ? 'أنتيكو' : 'أنت'} • ${timeStr}</div>
-            `;
-
-            messagesContainer.appendChild(msgDiv);
-            scrollToBottom();
-            return msgDiv;
-        }
-
-        function scrollToBottom() {
-            if (messagesContainer) {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-        }
-
-        async function getAntikoResponse(userText, fullPrompt) {
-            try {
-                return await fetchGemini(userText, fullPrompt);
-            } catch (fatalError) {
-                console.error("Antiko AI Response Error:", fatalError);
-                throw fatalError;
-            }
-        }
-
-        // --- 🧠 Antiko Internal Mini-Brain (Offline Fallback) ---
-        class LocalBrain {
-            constructor() {
-                this.knowledge = {
-                    "سلام": "وعليكم السلام يا فندم! نورت أنتيكو. أقدر أساعدك في إيه؟",
-                    "أهلاً": "أهلاً بك! أنا المساعد الذكي، إزاي أقدر أخدمك النهاردة؟",
-                    "خدمة": "إحنا في فريق أنتيكو بنقدم خدمات تطوير المواقع، تطبيقات الموبايل، والحلول الذكية. حابب تعرف أكتر؟",
-                    "سعر": "الأسعار بتختلف حسب المشروع، بس ممكن تتواصل مع الدعم الفني عشان يديك عرض سعر مناسب.",
-                    "فريق": "فريق أنتيكو مكون من مهندسين ومطورين شطار جداً، هدفنا ديماً نطلع شغل احترافي.",
-                    "باي": "مع السلامة! نورتنا في أي وقت.",
-                    "شكرا": "العفو! ده واجبي. لو احتجت أي حاجة تانية أنا هنا."
-                };
-            }
-            think(text) {
-                const input = (text || "").toLowerCase();
-                for (let key in this.knowledge) {
-                    if (input.includes(key)) return this.knowledge[key];
-                }
-                return "عذراً يا فندم، أنا حالياً شغال بـ 'المخ الداخلي' المحدود لأن فيه مشكلة في الاتصال بالسيرفر. جرب تسألني عن (الخدمات أو الفريق) أو فعل الـ VPN!";
-            }
-        }
-        const localBrain = new LocalBrain();
-
-        async function fetchGemini(userText, prompt) {
-            // Priority: Firestore Config -> Aggressive Fallbacks -> Gemini Direct
-            let apiKey = "AIzaSyDYHJtZiA753kY0CBj5Dsd1EUrfVKStG_I";
-            let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-            let isProxy = false;
-            let isOpenRouter = false;
-
-            const PROXY_LIST = [
-                "https://openrouter.ai/api/v1",
-                "https://api.aizone.ai/v1",
-                "https://api.aizone.cc/v1",
-                "https://azy.rest/v1",
-                "https://api.acy.ae/v1"
-            ];
-
-            // Normalize Base URL
-            let cleanBaseUrl = (apiBaseUrl || PROXY_LIST[0]).trim().replace(/\/+$/, "");
-
-            // Integrate User-provided OpenRouter Key if current keys are empty
-            const currentKeys = (apiKeys && apiKeys.length > 0) ? apiKeys : ["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"];
-
-            // If we have keys, use the proxy
-            if (currentKeys.length > 0) {
-                apiKey = currentKeys[currentKeyIndex];
-                isProxy = true;
-
-                // Auto-Detect OpenRouter Key
-                if (apiKey.startsWith("sk-or-v1-")) {
-                    cleanBaseUrl = "https://openrouter.ai/api/v1";
-                    isOpenRouter = true;
-                }
-
-                url = `${cleanBaseUrl}/chat/completions`;
-            }
-
-            console.log(`[Antiko AI] Attempting: ${isProxy ? cleanBaseUrl : 'Gemini Direct'} (Key #${currentKeyIndex + 1})`);
-
-            let payload;
-            if (isProxy) {
-                // Determine model name: default to a reliable free model on OpenRouter
-                let finalModel = apiModelName || (isOpenRouter ? "google/gemini-2.0-flash-lite-preview-02-05:free" : "gpt-3.5-turbo");
-
-                payload = {
-                    model: finalModel,
-                    messages: [
-                        { role: "system", content: prompt },
-                        { role: "user", content: userText }
-                    ],
-                    temperature: 0.7
-                };
-            } else {
-                payload = {
-                    contents: [{
-                        role: "user",
-                        parts: [{ text: `${prompt}\n\nسؤال المستخدم: ${userText}` }]
-                    }]
-                };
-            }
-
-            try {
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`,
-                        ...(isOpenRouter ? {
-                            'HTTP-Referer': 'https://antiko.web.app',
-                            'X-Title': 'Antiko Assistant'
-                        } : {})
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!res.ok) {
-                    const errorJson = await res.json().catch(() => ({}));
-                    const reason = errorJson?.error?.message || `HTTP ${res.status}`;
-
-                    // Auto-Rotate Key on Auth/Limit errors
-                    if (isProxy && (res.status === 429 || res.status === 401) && currentKeyIndex < currentKeys.length - 1) {
-                        currentKeyIndex++;
-                        console.warn(`Key #${currentKeyIndex} failed (Status ${res.status}). Rotating...`);
-                        return fetchGemini(userText, prompt);
-                    }
-
-                    // Specific check for OpenRouter 401/402
-                    if (isOpenRouter && (res.status === 401 || res.status === 403)) {
-                        throw new Error("مفتاح OpenRouter غير صالح أو يحتاج شحن.");
-                    }
-
-                    throw new Error(reason);
-                }
-
-                const data = await res.json();
-                let replyText = isProxy ? data?.choices?.[0]?.message?.content : data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                if (!replyText) throw new Error("API Returned Empty Result.");
-
-                updateHistory("user", userText, "model", replyText);
-                return formatText(replyText);
-
-            } catch (err) {
-                console.error("Antiko AI Network/API Error:", err);
-
-                // --- Aggressive Network Error Recovery ---
-                if (isProxy && !isOpenRouter) {
-                    const myIdx = PROXY_LIST.indexOf(cleanBaseUrl);
-                    const nextProxy = (myIdx !== -1 && myIdx < PROXY_LIST.length - 1) ? PROXY_LIST[myIdx + 1] : null;
-                    if (nextProxy) {
-                        console.warn(`Network error on ${cleanBaseUrl}. Trying fallback: ${nextProxy}`);
-                        apiBaseUrl = nextProxy;
-                        return fetchGemini(userText, prompt);
-                    }
-                }
-
-                // If ALL APIs fail, use the Mini-Brain Fallback!
-                console.warn("All remotes failed. Falling back to Antiko Mini-Brain...");
-                const localResponse = localBrain.think(userText);
-                updateHistory("user", userText, "model", localResponse);
-                return formatText(localResponse + "\n\n(تم الرد بواسطة الذكاء الداخلي لعدم وجود إنترنت 📡)");
-            }
-        }
-
-        function updateHistory(uRole, uText, mRole, mText) {
-            conversationHistory.push({ role: uRole, parts: [{ text: uText }] });
-            conversationHistory.push({ role: mRole, parts: [{ text: mText }] });
-            if (conversationHistory.length > 20) conversationHistory = conversationHistory.slice(-20);
-
-            localStorage.setItem('Antiko_history', JSON.stringify(conversationHistory));
-        }
-
-        function formatText(t) {
-            if (typeof t !== 'string') return "خطأ في النص";
-            return t.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/### (.*?)/g, '<h3>$1</h3>');
-        }
-
+// ==========================================
+// APP CONTEXT LOADER (From Firestore)
+// ==========================================
+async function loadAppContext() {
+    console.log("AI: Loading app context from Firestore...");
+    const context = {
+        services: [],
+        teamMembers: [],
+        siteBrand: "أنتيكو تيم",
+        siteDescription: ""
     };
 
-    window.initAiChat = initChat;
-    document.addEventListener('DOMContentLoaded', initChat);
-})();
+    try {
+        // 1. Load Services
+        const servicesSnap = await getDocs(query(collection(db, "services"), orderBy("sortOrder", "asc")));
+        for (const sDoc of servicesSnap.docs) {
+            const s = sDoc.data();
+            if (!s.active) continue;
+
+            const serviceInfo = {
+                name: s.titleAr || s.slug,
+                description: s.descriptionAr || "",
+                type: s.sectionType || "store",
+                slug: s.slug
+            };
+
+            // Load items for this service
+            const collPath = (s.targetCollection && s.targetCollection.trim()) || s.slug;
+            try {
+                const itemsSnap = await getDocs(query(collection(db, collPath), orderBy("sortOrder", "asc")));
+                serviceInfo.items = [];
+                itemsSnap.forEach(iDoc => {
+                    const item = iDoc.data();
+                    if (!item.active) return;
+                    const itemInfo = {
+                        name: item.nameAr || item.name || item.titleAr || "",
+                        price: item.price || "",
+                        currency: item.currency || "ج.م"
+                    };
+                    if (item.options && item.options.length > 0) {
+                        itemInfo.options = item.options.map(o => ({
+                            name: o.name,
+                            price: o.price
+                        }));
+                    }
+                    serviceInfo.items.push(itemInfo);
+                });
+            } catch (e) {
+                console.warn(`AI: Could not load items for ${collPath}`, e);
+            }
+
+            context.services.push(serviceInfo);
+        }
+
+        // 2. Load Team Members
+        try {
+            const teamSnap = await getDocs(query(collection(db, "team_members"), orderBy("sortOrder", "asc")));
+            teamSnap.forEach(tDoc => {
+                const m = tDoc.data();
+                if (!m.active) return;
+                context.teamMembers.push({
+                    name: m.name,
+                    role: m.role,
+                    bio: m.bio || ""
+                });
+            });
+        } catch (e) {
+            console.warn("AI: Could not load team members", e);
+        }
+
+        // 3. Load Site Settings
+        try {
+            const settingsSnap = await getDoc(doc(db, "site_settings", "main"));
+            if (settingsSnap.exists()) {
+                const st = settingsSnap.data();
+                context.siteBrand = st.siteBrand || context.siteBrand;
+            }
+        } catch (e) { /* ignore */ }
+
+        // 4. Load App Flags for extra context
+        try {
+            const flagsSnap = await getDoc(doc(db, "settings", "app_flags"));
+            if (flagsSnap.exists()) {
+                const fl = flagsSnap.data();
+                context.siteDescription = fl.siteBio || "";
+                context.adminWhatsApp = fl.adminWa || "";
+            }
+        } catch (e) { /* ignore */ }
+
+        appContext = context;
+        console.log("AI: App context loaded successfully.", context);
+    } catch (e) {
+        console.error("AI: Failed to load app context:", e);
+        appContext = context; // Use defaults
+    }
+
+    return context;
+}
+
+// ==========================================
+// SYSTEM PROMPT BUILDER
+// ==========================================
+function buildSystemPrompt() {
+    const ctx = appContext || { services: [], teamMembers: [], siteBrand: "أنتيكو تيم" };
+
+    let servicesText = "";
+    if (ctx.services.length > 0) {
+        servicesText = ctx.services.map(s => {
+            let text = `• ${s.name}`;
+            if (s.description) text += ` — ${s.description}`;
+            if (s.items && s.items.length > 0) {
+                text += "\n  العناصر المتوفرة:";
+                s.items.forEach(item => {
+                    text += `\n    - ${item.name}`;
+                    if (item.price) text += ` (${item.price} ${item.currency})`;
+                    if (item.options) {
+                        item.options.forEach(opt => {
+                            text += `\n      ↳ ${opt.name}: ${opt.price} ${item.currency || "ج.م"}`;
+                        });
+                    }
+                });
+            }
+            return text;
+        }).join("\n\n");
+    }
+
+    let teamText = "";
+    if (ctx.teamMembers.length > 0) {
+        teamText = ctx.teamMembers.map(m => {
+            let text = `• ${m.name} — ${m.role}`;
+            if (m.bio) text += ` (${m.bio})`;
+            return text;
+        }).join("\n");
+    }
+
+    return `أنتِ المساعدة الذكية لتطبيق "${ctx.siteBrand}".
+${ctx.siteDescription ? `وصف الموقع: ${ctx.siteDescription}` : ""}
+
+🎯 مهمتك:
+- مساعدة المستخدمين في التعرف على الخدمات والمنتجات المتاحة
+- الإجابة على أسئلتهم حول الأسعار والتفاصيل
+- توجيههم لكيفية الطلب أو التواصل مع الفريق
+- كن ودود ومحترف واستخدم الإيموجي بشكل خفيف
+
+📋 الأقسام والخدمات المتاحة حالياً:
+${servicesText || "لا توجد خدمات محددة حالياً."}
+
+👥 فريق العمل:
+${teamText || "لا توجد بيانات عن الفريق حالياً."}
+
+${ctx.adminWhatsApp ? `📞 رقم التواصل عبر واتساب: ${ctx.adminWhatsApp}` : ""}
+
+📌 قواعد مهمة:
+- أجب باللغة العربية دائماً إلا إذا سألك المستخدم بلغة أخرى
+- اذكر الأسعار بدقة كما هي في البيانات
+- لا تخترع خدمات أو أسعار غير موجودة
+- إذا سُئلت عن شيء لا تعرفه، اقترح التواصل مع الفريق
+- اجعل ردودك مختصرة ومفيدة (لا تزيد عن 3-4 أسطر إلا لو الموضوع يحتاج تفصيل)
+- لا تذكر أبداً أنك نموذج لغوي أو AI من جوجل أو OpenAI، أنت مساعد ${ctx.siteBrand}`;
+}
+
+// ==========================================
+// CHAT UI FUNCTIONS
+// ==========================================
+
+function createMessageBubble(text, sender = "ai") {
+    const wrapper = document.createElement("div");
+    wrapper.className = `chat-msg ${sender}`;
+    wrapper.style.cssText = `
+        display: flex; 
+        justify-content: ${sender === "user" ? "flex-end" : "flex-start"};
+        margin-bottom: 12px;
+        animation: msgSlideIn 0.3s ease;
+    `;
+
+    const bubble = document.createElement("div");
+    bubble.className = "msg-bubble";
+    bubble.style.cssText = `
+        max-width: 85%;
+        padding: 12px 16px;
+        border-radius: ${sender === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px"};
+        background: ${sender === "user"
+            ? "linear-gradient(135deg, #ff003c, #cc0030)"
+            : "rgba(255,255,255,0.08)"};
+        color: #fff;
+        font-size: 0.92rem;
+        line-height: 1.7;
+        word-wrap: break-word;
+        direction: rtl;
+        text-align: right;
+        border: ${sender === "ai" ? "1px solid rgba(255,255,255,0.06)" : "none"};
+        backdrop-filter: ${sender === "ai" ? "blur(10px)" : "none"};
+    `;
+
+    bubble.innerHTML = formatMessage(text);
+    wrapper.appendChild(bubble);
+    return wrapper;
+}
+
+function formatMessage(text) {
+    // Simple markdown-like formatting
+    return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; font-size:0.85em;">$1</code>')
+        .replace(/\n/g, '<br>');
+}
+
+function showTypingIndicator() {
+    const wrapper = document.createElement("div");
+    wrapper.className = "chat-msg ai typing-indicator-msg";
+    wrapper.id = "typing-indicator";
+    wrapper.style.cssText = `
+        display: flex; justify-content: flex-start; margin-bottom: 12px;
+        animation: msgSlideIn 0.3s ease;
+    `;
+
+    const bubble = document.createElement("div");
+    bubble.className = "msg-bubble";
+    bubble.style.cssText = `
+        padding: 14px 22px;
+        border-radius: 18px 18px 18px 4px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.06);
+        display: flex; gap: 6px; align-items: center;
+    `;
+
+    for (let i = 0; i < 3; i++) {
+        const dot = document.createElement("div");
+        dot.style.cssText = `
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,0,60,0.6);
+            animation: typingBounce 1.4s infinite;
+            animation-delay: ${i * 0.2}s;
+        `;
+        bubble.appendChild(dot);
+    }
+
+    wrapper.appendChild(bubble);
+    chatMessages.appendChild(wrapper);
+    scrollToBottom();
+}
+
+function removeTypingIndicator() {
+    const indicator = document.getElementById("typing-indicator");
+    if (indicator) indicator.remove();
+}
+
+function scrollToBottom() {
+    if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+function addMessage(text, sender = "ai") {
+    const msg = createMessageBubble(text, sender);
+    chatMessages.appendChild(msg);
+    scrollToBottom();
+    return msg;
+}
+
+// ==========================================
+// SUGGESTIONS
+// ==========================================
+function showSuggestions() {
+    const suggestions = [
+        "إيه الخدمات المتاحة؟ 🛒",
+        "عايز أعرف الأسعار 💰",
+        "مين فريق أنتيكو؟ 👥",
+        "ازاي أطلب؟ 📦"
+    ];
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "suggestions-wrapper";
+    wrapper.style.cssText = `
+        display: flex; flex-wrap: wrap; gap: 8px;
+        justify-content: flex-start; margin-bottom: 12px;
+        direction: rtl;
+    `;
+
+    suggestions.forEach(text => {
+        const chip = document.createElement("button");
+        chip.textContent = text;
+        chip.style.cssText = `
+            background: rgba(255,0,60,0.1);
+            border: 1px solid rgba(255,0,60,0.3);
+            color: #ff6b8a;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-family: 'Alexandria', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        `;
+        chip.onmouseenter = () => {
+            chip.style.background = "rgba(255,0,60,0.25)";
+            chip.style.transform = "translateY(-2px)";
+        };
+        chip.onmouseleave = () => {
+            chip.style.background = "rgba(255,0,60,0.1)";
+            chip.style.transform = "translateY(0)";
+        };
+        chip.onclick = () => {
+            wrapper.remove();
+            handleSend(text);
+        };
+        wrapper.appendChild(chip);
+    });
+
+    chatMessages.appendChild(wrapper);
+    scrollToBottom();
+}
+
+// ==========================================
+// AI API CALL (OpenRouter with Streaming)
+// ==========================================
+async function getAIResponse(userMessage) {
+    // Build messages array
+    const systemPrompt = buildSystemPrompt();
+
+    // Keep last 10 messages for context (to avoid token overflow)
+    const recentHistory = chatHistory.slice(-10);
+
+    const messages = [
+        { role: "system", content: systemPrompt },
+        ...recentHistory,
+        { role: "user", content: userMessage }
+    ];
+
+    try {
+        const response = await fetch(AI_CONFIG.apiUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${AI_CONFIG.apiKey}`,
+                "HTTP-Referer": window.location.origin,
+                "X-Title": "Antiko Team App"
+            },
+            body: JSON.stringify({
+                model: AI_CONFIG.model,
+                messages: messages,
+                max_tokens: AI_CONFIG.maxTokens,
+                temperature: AI_CONFIG.temperature,
+                stream: true
+            })
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            console.error("AI API Error:", response.status, errData);
+            throw new Error(errData.error?.message || `خطأ ${response.status}`);
+        }
+
+        // Handle streaming response
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = "";
+
+        // Create the AI bubble early for streaming
+        removeTypingIndicator();
+        const msgElement = addMessage("", "ai");
+        const bubbleEl = msgElement.querySelector(".msg-bubble");
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split("\n").filter(line => line.trim() !== "");
+
+            for (const line of lines) {
+                if (line.startsWith("data: ")) {
+                    const data = line.slice(6).trim();
+                    if (data === "[DONE]") continue;
+
+                    try {
+                        const parsed = JSON.parse(data);
+                        const delta = parsed.choices?.[0]?.delta?.content;
+                        if (delta) {
+                            fullText += delta;
+                            bubbleEl.innerHTML = formatMessage(fullText);
+                            scrollToBottom();
+                        }
+                    } catch (e) {
+                        // Skip unparseable chunks
+                    }
+                }
+            }
+        }
+
+        // If streaming didn't work (empty response), try non-streaming
+        if (!fullText) {
+            console.warn("AI: Streaming returned empty, retrying non-stream...");
+            msgElement.remove();
+            return await getAIResponseFallback(userMessage);
+        }
+
+        return fullText;
+
+    } catch (error) {
+        console.error("AI Response Error:", error);
+        removeTypingIndicator();
+        throw error;
+    }
+}
+
+// Fallback non-streaming request
+async function getAIResponseFallback(userMessage) {
+    const systemPrompt = buildSystemPrompt();
+    const recentHistory = chatHistory.slice(-10);
+
+    const messages = [
+        { role: "system", content: systemPrompt },
+        ...recentHistory,
+        { role: "user", content: userMessage }
+    ];
+
+    const response = await fetch(AI_CONFIG.apiUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${AI_CONFIG.apiKey}`,
+            "HTTP-Referer": window.location.origin,
+            "X-Title": "Antiko Team App"
+        },
+        body: JSON.stringify({
+            model: AI_CONFIG.model,
+            messages: messages,
+            max_tokens: AI_CONFIG.maxTokens,
+            temperature: AI_CONFIG.temperature,
+            stream: false
+        })
+    });
+
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content || "عذراً، لم أتمكن من الرد. حاول مرة أخرى.";
+    return text;
+}
+
+// ==========================================
+// SEND MESSAGE HANDLER
+// ==========================================
+async function handleSend(overrideText) {
+    const text = (overrideText || chatInput.value).trim();
+    if (!text || isWaitingForResponse) return;
+
+    // Clear input
+    if (!overrideText) chatInput.value = "";
+
+    // Add user message
+    addMessage(text, "user");
+    chatHistory.push({ role: "user", content: text });
+
+    // Show typing
+    isWaitingForResponse = true;
+    updateSendButton(true);
+    showTypingIndicator();
+
+    try {
+        const reply = await getAIResponse(text);
+
+        // If streaming handled it, reply is already shown
+        // If fallback was used, we need to add the message
+        if (reply && !document.querySelector(".chat-msg.ai:last-child .msg-bubble")?.textContent) {
+            removeTypingIndicator();
+            addMessage(reply, "ai");
+        }
+
+        chatHistory.push({ role: "assistant", content: reply });
+
+        // Play sound if available
+        if (typeof window.playSound === "function") {
+            window.playSound("nav");
+        }
+    } catch (error) {
+        removeTypingIndicator();
+        addMessage("⚠️ حصل مشكلة في الاتصال. جرب تاني كمان شوية أو تواصل مع الفريق مباشرة.", "ai");
+    } finally {
+        isWaitingForResponse = false;
+        updateSendButton(false);
+    }
+}
+
+function updateSendButton(loading) {
+    if (!sendBtn) return;
+    if (loading) {
+        sendBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i>';
+        sendBtn.disabled = true;
+        sendBtn.style.opacity = "0.5";
+    } else {
+        sendBtn.innerHTML = '<i class="ph-fill ph-paper-plane-right"></i>';
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = "1";
+    }
+}
+
+// ==========================================
+// CHAT TOGGLE (OPEN/CLOSE)
+// ==========================================
+let chatInitialized = false;
+
+function openChat() {
+    if (!chatBox) return;
+    chatBox.classList.remove("hidden");
+
+    if (!chatInitialized) {
+        chatInitialized = true;
+        chatMessages.innerHTML = "";
+
+        // Welcome message
+        addMessage("أهلاً بيك! 👋 أنا المساعد الذكي بتاع أنتيكو تيم.\nازاي أقدر أساعدك النهاردة؟ ✨", "ai");
+
+        // Show suggestions after a short delay
+        setTimeout(() => showSuggestions(), 500);
+
+        // Load context in background
+        loadAppContext().then(() => {
+            console.log("AI: Context ready for queries.");
+        });
+    }
+
+    // Focus input
+    setTimeout(() => {
+        if (chatInput) chatInput.focus();
+    }, 300);
+}
+
+function closeChat() {
+    if (!chatBox) return;
+    chatBox.classList.add("hidden");
+}
+
+// ==========================================
+// EVENT LISTENERS
+// ==========================================
+if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+        if (chatBox && chatBox.classList.contains("hidden")) {
+            openChat();
+        } else {
+            closeChat();
+        }
+        if (typeof window.playSound === "function") window.playSound("menu");
+    });
+}
+
+if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+        closeChat();
+        if (typeof window.playSound === "function") window.playSound("back");
+    });
+}
+
+if (sendBtn) {
+    sendBtn.addEventListener("click", () => handleSend());
+}
+
+if (chatInput) {
+    chatInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    });
+}
+
+// Close chat when clicking outside
+document.addEventListener("click", (e) => {
+    if (!chatBox || chatBox.classList.contains("hidden")) return;
+    if (!chatBox.contains(e.target) && !toggleBtn.contains(e.target)) {
+        closeChat();
+    }
+});
+
+// ==========================================
+// INJECT CSS ANIMATIONS
+// ==========================================
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `
+    @keyframes msgSlideIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes typingBounce {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+        30% { transform: translateY(-8px); opacity: 1; }
+    }
+    .chat-msg.ai .msg-bubble code {
+        background: rgba(255,255,255,0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.85em;
+    }
+    .chat-msg.ai .msg-bubble strong {
+        color: #ff6b8a;
+    }
+    #ai-chat-input:focus {
+        outline: none;
+        border-color: rgba(255,0,60,0.5) !important;
+        box-shadow: 0 0 0 3px rgba(255,0,60,0.1);
+    }
+`;
+document.head.appendChild(styleSheet);
+
+// ==========================================
+// INIT
+// ==========================================
+console.log("Antiko AI Chat: Module loaded successfully ✅");

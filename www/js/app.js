@@ -284,32 +284,60 @@ updateBgMusic();
 
 // App State Change (Pause music on background)
 const pauseAudioGlobally = () => {
+    console.log("Antiko Audio: Pausing all audio (app hidden/minimized)");
     Object.values(sounds).forEach(s => {
         if (s && typeof s.pause === 'function') s.pause();
     });
 };
 
 const resumeAudioGlobally = () => {
+    console.log("Antiko Audio: Resuming audio (app visible)");
     if (appSettings.musicEnabled && sounds.bg) {
         sounds.bg.play().catch(() => { });
     }
 };
 
-// For native Capacitor builds
-if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-    window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
-        if (!isActive) pauseAudioGlobally();
-        else resumeAudioGlobally();
-    });
-}
+// 1. Capacitor Native: Use the Capacitor bridge directly
+(async () => {
+    try {
+        if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+            // Try the installed @capacitor-firebase/app or @capacitor/app
+            if (window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+                window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
+                    if (!isActive) pauseAudioGlobally();
+                    else resumeAudioGlobally();
+                });
+                console.log("Antiko Audio: Capacitor App listener registered.");
+            }
+        }
+    } catch (e) {
+        console.warn("Capacitor App listener failed:", e);
+    }
+})();
 
-// For standard browser PWA builds
+// 2. Browser: visibilitychange (works for tab switching + some minimizes)
 document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
         pauseAudioGlobally();
     } else {
         resumeAudioGlobally();
     }
+});
+
+// 3. Fallback: blur/focus on window (catches minimize on Android WebView)
+window.addEventListener("blur", () => {
+    pauseAudioGlobally();
+});
+window.addEventListener("focus", () => {
+    resumeAudioGlobally();
+});
+
+// 4. Fallback: pagehide/pageshow (extra safety for mobile browsers)
+window.addEventListener("pagehide", () => {
+    pauseAudioGlobally();
+});
+window.addEventListener("pageshow", () => {
+    resumeAudioGlobally();
 });
 
 
@@ -339,9 +367,12 @@ async function initAppFlags() {
 }
 
 function applyAppFlags() {
-    // 1. Maintenance Mode
+    // 1. Maintenance Mode (Admins can bypass)
     let mOverlay = document.getElementById('maintenance-overlay');
-    if (appFlags.maintenanceMode) {
+    const currentUserEmail = (auth.currentUser && auth.currentUser.email) ? auth.currentUser.email.toLowerCase() : '';
+    const isCurrentUserAdmin = currentUserEmail && adminEmails.includes(currentUserEmail);
+
+    if (appFlags.maintenanceMode && !isCurrentUserAdmin) {
         if (!mOverlay) {
             mOverlay = document.createElement('div');
             mOverlay.id = 'maintenance-overlay';
@@ -360,6 +391,29 @@ function applyAppFlags() {
         }
     } else if (mOverlay) {
         mOverlay.remove();
+    }
+
+    // Show admin maintenance banner (so admin knows it's still on)
+    let adminBanner = document.getElementById('admin-maintenance-banner');
+    if (appFlags.maintenanceMode && isCurrentUserAdmin) {
+        if (!adminBanner) {
+            adminBanner = document.createElement('div');
+            adminBanner.id = 'admin-maintenance-banner';
+            adminBanner.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; z-index: 99999;
+                background: linear-gradient(135deg, #ff003c, #8a0303); color: #fff;
+                padding: 10px 20px; text-align: center; font-family: 'Alexandria', sans-serif;
+                font-size: 0.9rem; font-weight: 700; display: flex; align-items: center;
+                justify-content: center; gap: 15px;
+            `;
+            adminBanner.innerHTML = `
+                <span>⚠️ وضع الصيانة مفعّل حالياً — الزوار لا يمكنهم رؤية الموقع</span>
+                <button onclick="document.getElementById('nav-dashboard-btn')?.click()" style="background:#fff; color:#ff003c; border:none; padding:5px 15px; border-radius:8px; font-weight:700; cursor:pointer; font-family:inherit;">فتح لوحة التحكم</button>
+            `;
+            document.body.appendChild(adminBanner);
+        }
+    } else if (adminBanner) {
+        adminBanner.remove();
     }
 
     // 2. Protection System
