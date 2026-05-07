@@ -9,15 +9,21 @@ const revealObserver = new IntersectionObserver((entries) => {
 
 // Initialize reveal on all current reveal elements
 const initReveal = () => {
-    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+    document.querySelectorAll('.reveal:not(.visible)').forEach(el => revealObserver.observe(el));
 };
 
-// Re-run observer when dynamic content is added (MutationObserver)
+// PERF: Debounced MutationObserver - only check new reveals after DOM settles
+let revealDebounceTimer = null;
 const contentObserver = new MutationObserver(() => {
-    document.querySelectorAll('.reveal:not(.visible)').forEach(el => revealObserver.observe(el));
+    // Don't fire on every single mutation - wait for DOM to settle
+    clearTimeout(revealDebounceTimer);
+    revealDebounceTimer = setTimeout(() => {
+        document.querySelectorAll('.reveal:not(.visible)').forEach(el => revealObserver.observe(el));
+    }, 300);
 });
 
 document.addEventListener('DOMContentLoaded', () => {
     initReveal();
+    // PERF: Only watch direct children changes, not deep subtree attributes
     contentObserver.observe(document.body, { childList: true, subtree: true });
 });

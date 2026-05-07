@@ -199,31 +199,7 @@
             }
         });
 
-        // 2. Disable Keyboard Shortcuts (F12, Ctrl+Shift+I, etc.)
-        document.addEventListener('keydown', (e) => {
-            // Disable F12
-            if (e.keyCode == 123) {
-                e.preventDefault();
-                return false;
-            }
-            // Disable Ctrl+Shift+I, J, C
-            if (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) {
-                e.preventDefault();
-                return false;
-            }
-            // Disable Ctrl+U (View Source)
-            if (e.ctrlKey && e.keyCode == 85) {
-                e.preventDefault();
-                return false;
-            }
-            // Disable Ctrl+C, Ctrl+X ONLY outside inputs
-            const target = e.target;
-            const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
-            if (!isInput && e.ctrlKey && (e.keyCode == 67 || e.keyCode == 88)) {
-                e.preventDefault();
-                return false;
-            }
-        });
+        // 2. Keyboard shortcuts handled by app.js protection system
 
         // 3. Block Copy/Cut Events globally except for inputs
         document.addEventListener('copy', (e) => {

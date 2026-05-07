@@ -562,7 +562,8 @@ function closeChat() {
 // EVENT LISTENERS
 // ==========================================
 if (toggleBtn) {
-    toggleBtn.addEventListener("click", () => {
+    toggleBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent document click from immediately closing
         if (chatBox && chatBox.classList.contains("hidden")) {
             openChat();
         } else {
@@ -573,7 +574,8 @@ if (toggleBtn) {
 }
 
 if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
+    closeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         closeChat();
         if (typeof window.playSound === "function") window.playSound("back");
     });
@@ -592,13 +594,17 @@ if (chatInput) {
     });
 }
 
-// Close chat when clicking outside
+// Close chat when clicking outside (with guard)
 document.addEventListener("click", (e) => {
     if (!chatBox || chatBox.classList.contains("hidden")) return;
-    if (!chatBox.contains(e.target) && !toggleBtn.contains(e.target)) {
-        closeChat();
-    }
+    if (chatBox.contains(e.target)) return; // Click inside chat
+    if (toggleBtn && toggleBtn.contains(e.target)) return; // Click on toggle btn
+    const mobileAiBtn = document.getElementById("btn-nav-ai");
+    if (mobileAiBtn && mobileAiBtn.contains(e.target)) return; // Click on mobile nav btn
+    closeChat();
 });
+
+// NOTE: btn-nav-ai is handled by app.js via window.openAiChat / window.closeAiChat
 
 // ==========================================
 // INJECT CSS ANIMATIONS
@@ -629,6 +635,12 @@ styleSheet.textContent = `
     }
 `;
 document.head.appendChild(styleSheet);
+
+// ==========================================
+// EXPOSE GLOBALS
+// ==========================================
+window.openAiChat = openChat;
+window.closeAiChat = closeChat;
 
 // ==========================================
 // INIT

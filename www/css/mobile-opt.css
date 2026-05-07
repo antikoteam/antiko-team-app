@@ -1,9 +1,24 @@
 /* Mobile Optimizations for Antiko Team App */
 /* Reduces rendering load and improves performance */
 
-/* Removed selection overrides to respect the new protection system */
+/* === GLOBAL PERFORMANCE HINTS === */
+/* Enable GPU compositing for animated elements */
+.glass-card,
+.menu-card,
+.premium-btn,
+.ai-chat-container,
+.mobile-bottom-nav {
+    will-change: transform;
+    contain: layout style;
+}
 
-/* Disable heavy CSS calculations on low-end/mobile devices */
+/* Reduce paint areas */
+input, textarea, select {
+    will-change: auto;
+    contain: layout style;
+}
+
+/* === MOBILE OPTIMIZATIONS === */
 @media (max-width: 768px) {
     * {
         backdrop-filter: none !important;
@@ -26,5 +41,41 @@
     /* Reduce heavy animations if present */
     .Antiko-title {
         animation: none !important;
+    }
+
+    /* Optimize inputs for faster typing on mobile */
+    input, textarea {
+        font-size: 16px !important; /* Prevents iOS zoom on focus */
+        -webkit-transform: translateZ(0); /* Force GPU layer */
+        transform: translateZ(0);
+    }
+
+    /* Reduce animation complexity on mobile */
+    .bg-effects .bg-line {
+        animation-duration: 30s !important; /* Slow down = less CPU */
+    }
+
+    /* Reduce repaints during scroll */
+    .admin-main,
+    .ai-chat-body,
+    #support-chat-box {
+        contain: layout style paint;
+        overflow-anchor: auto;
+    }
+}
+
+/* === CAPACITOR/WEBVIEW SPECIFIC === */
+@media (max-width: 991px) {
+    /* Prevent overscroll bounce that causes jank */
+    html, body {
+        overscroll-behavior: none;
+    }
+    
+    /* Hardware accelerate scrollable areas */
+    .ai-chat-body,
+    #support-chat-box,
+    .admin-main {
+        -webkit-overflow-scrolling: touch;
+        transform: translateZ(0);
     }
 }

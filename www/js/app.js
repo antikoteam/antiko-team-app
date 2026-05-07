@@ -194,9 +194,9 @@ const sounds = {
     bg: new Audio('assets/audio/bg.mp3')
 };
 
-// تحميل مسبق إجباري (Force Preload)
-Object.values(sounds).forEach(s => {
-    s.preload = "auto";
+// تحميل مسبق ذكي (Smart Preload - bg only needs full, others load on demand)
+Object.entries(sounds).forEach(([key, s]) => {
+    s.preload = (key === 'bg') ? 'auto' : 'metadata';
     s.load();
 });
 
@@ -416,17 +416,24 @@ function applyAppFlags() {
         adminBanner.remove();
     }
 
-    // 2. Protection System
+    // 2. Protection System (Optimized - doesn't block normal typing)
     if (appFlags.protectionEnabled) {
-        document.oncontextmenu = () => false;
-        document.onkeydown = (e) => {
-            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) {
-                return false;
-            }
-        };
+        document.oncontextmenu = (e) => { e.preventDefault(); return false; };
+        // Only intercept DevTools shortcuts, let all other keys pass through instantly
+        if (!window._antikoProtectionActive) {
+            window._antikoProtectionActive = true;
+            document.addEventListener('keydown', (e) => {
+                if (!appFlags.protectionEnabled) return;
+                // F12
+                if (e.key === 'F12') { e.preventDefault(); return; }
+                // Ctrl+Shift+I or Ctrl+Shift+J
+                if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) { e.preventDefault(); return; }
+                // Ctrl+U
+                if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) { e.preventDefault(); return; }
+            }, { capture: true });
+        }
     } else {
         document.oncontextmenu = null;
-        document.onkeydown = null;
     }
 
     // 3. AI Visibility
@@ -880,8 +887,13 @@ if (btnNavAccount) {
 
 if (btnNavAi) {
     btnNavAi.onclick = () => {
-        const aiToggle = document.getElementById('ai-chat-toggle');
-        if (aiToggle) aiToggle.click();
+        // Use the global functions exposed by ai-chat.js (toggle button is hidden on mobile)
+        const chatBox = document.getElementById('ai-chat-box');
+        if (chatBox && !chatBox.classList.contains('hidden')) {
+            if (typeof window.closeAiChat === 'function') window.closeAiChat();
+        } else {
+            if (typeof window.openAiChat === 'function') window.openAiChat();
+        }
         setActiveNavItem('btn-nav-ai');
     };
 }
@@ -1766,16 +1778,33 @@ if (canvas) {
     let height = canvas.height = window.innerHeight;
 
     const particles = [];
-    // Even on mobile, we can keep it light. Let's use user's request for full effect but efficient.
     const isMobile = isMobileDevice;
-    const particleCount = isMobile ? 30 : Math.min(Math.floor((width * height) / 10000), 100);
-    const connectionDistance = isMobile ? 120 : 160;
-    const mouseRadius = isMobile ? 120 : 180;
+    // PERF: Much fewer particles on mobile to save CPU/RAM
+    const particleCount = isMobile ? 12 : Math.min(Math.floor((width * height) / 15000), 60);
+    const connectionDistance = isMobile ? 100 : 150;
+    const mouseRadius = isMobile ? 100 : 150;
 
     const mouse = { x: null, y: null };
     let lastInteractionTime = Date.now();
+    let isUserTyping = false; // PERF: Pause animation during typing
+    let lastFrameTime = 0;
+    const targetFPS = isMobile ? 20 : 40; // PERF: Throttle FPS
+    const frameInterval = 1000 / targetFPS;
+
+    // PERF: Detect when user is typing to pause heavy animation
+    document.addEventListener('focusin', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+            isUserTyping = true;
+        }
+    });
+    document.addEventListener('focusout', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+            isUserTyping = false;
+        }
+    });
 
     const handleInteraction = (e) => {
+        if (isUserTyping) return; // Don't track mouse during typing
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         mouse.x = clientX;
@@ -1783,10 +1812,13 @@ if (canvas) {
         lastInteractionTime = Date.now();
     };
 
-    window.addEventListener('mousemove', handleInteraction);
-    window.addEventListener('touchstart', handleInteraction);
-    window.addEventListener('touchmove', handleInteraction);
-    window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
+    window.addEventListener('mousemove', handleInteraction, { passive: true });
+    if (!isMobile) {
+        // PERF: Don't track touch on mobile - wastes CPU
+    } else {
+        // Minimal touch tracking
+    }
+    window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; }, { passive: true });
 
     window.addEventListener('resize', () => {
         width = canvas.width = window.innerWidth;
@@ -1840,9 +1872,16 @@ if (canvas) {
     }
 
     let animationId;
-    function animate() {
-        // OPTIMIZATION: Stop animation if tab is hidden or dashboard is open
-        if (document.hidden || !dashboardView.classList.contains('hidden')) {
+    function animate(timestamp) {
+        // PERF: Skip frame if not enough time passed (throttle FPS)
+        if (timestamp - lastFrameTime < frameInterval) {
+            animationId = requestAnimationFrame(animate);
+            return;
+        }
+        lastFrameTime = timestamp;
+
+        // PERF: Pause when tab hidden, dashboard open, or user typing
+        if (document.hidden || !dashboardView.classList.contains('hidden') || isUserTyping) {
             animationId = requestAnimationFrame(animate);
             return;
         }

@@ -521,13 +521,9 @@ a {
 /* MOBILE PERFORMANCE & AESTHETIC OVERRIDES */
 @media (max-width: 768px) {
 
+    /* PERF: Hide GPU-heavy effects on mobile */
     .cyber-grid,
-    .red-flare {
-        display: block !important;
-        animation: gridMove 20s linear infinite !important;
-        opacity: 0.35 !important;
-    }
-
+    .red-flare,
     #mouse-trailer,
     .scanlines,
     .noise {
@@ -544,60 +540,20 @@ a {
         background: #000000 !important;
     }
 
+    /* PERF: Only 1 animation instead of 3 stacked */
     .Antiko-title {
         font-family: 'DoctorGlitch', 'Anton', sans-serif !important;
         font-size: 3.5rem !important;
-        animation: glitchText 1.5s infinite linear alternate, floating 4s infinite ease-in-out, neon-glow 3s infinite alternate !important;
+        animation: neon-glow 3s infinite alternate !important;
         text-shadow: 0 0 10px rgba(138, 3, 3, 0.9) !important;
         color: #8a0303 !important;
     }
 
     .Antiko-title::before,
     .Antiko-title::after {
-        display: block !important;
-        opacity: 0.7 !important;
-    }
-
-    .reveal,
-    .slide-in,
-    .fade-up {
-        opacity: 1 !important;
-        transform: none !important;
-        animation: none !important;
-        transition: none !important;
-    }
-}
-
-/*
-====================================================================
-               LIGHTWEIGHT MOBILE PERFORMANCE OVERRIDES
-====================================================================
-*/
-@media (max-width: 768px) {
-
-    .cyber-grid,
-    .red-flare {
-        animation: gridMove 20s linear infinite !important;
-        opacity: 0.35 !important;
-        display: block !important;
-    }
-
-    .scanlines,
-    .noise,
-    #mouse-trailer {
         display: none !important;
     }
 
-    .glass-card,
-    .mobile-bottom-nav,
-    .announcement-box,
-    .ai-fab-inner,
-    .modal {
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        background: #000000 !important;
-    }
-
     .reveal,
     .slide-in,
     .fade-up {
@@ -607,6 +563,8 @@ a {
         transition: none !important;
     }
 }
+
+/* Duplicate mobile overrides removed — consolidated above */
 
 #main-content,
 #main-view,
