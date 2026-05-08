@@ -177,37 +177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// Audio Feedback (Tick sound)
-const playClick = () => {
-    const appSettings = JSON.parse(localStorage.getItem('antiko_settings')) || {
-        soundEnabled: true,
-        volume: 30
-    };
-    if (!appSettings.soundEnabled) return;
-
-    // Fetch custom sound from Firestore or Fallback
-    const settingsRef = doc(db, "site_settings", "main");
-    getDoc(settingsRef).then(snap => {
-        let soundUrl = '/assets/sounds/click.mp3';
-        if (snap.exists() && snap.data().customBtnSound) {
-            soundUrl = snap.data().customBtnSound;
-        }
-        const audio = new Audio(soundUrl);
-        audio.volume = 1.0;
-        audio.play().catch(() => { });
-    }).catch(() => {
-        // Fallback if firestore fails
-        const audio = new Audio('/assets/sounds/click.mp3');
-        audio.volume = 1.0;
-        audio.play().catch(() => { });
-    });
-};
-
-document.addEventListener('click', (e) => {
-    if (e.target.closest('button, .premium-btn, .glass-card, .action-btn')) {
-        playClick();
-    }
-});
+// (Audio feedback removed as per request)
 
 function getGameLogo(name) {
     if (!name) return 'https://img.freepik.com/premium-vector/joystick-neon-logo-design-template-gamer-neon-logo-concept-pro-gamer-logo-neon-vector-illustration_155165-154.jpg';

@@ -12,18 +12,21 @@ const initReveal = () => {
     document.querySelectorAll('.reveal:not(.visible)').forEach(el => revealObserver.observe(el));
 };
 
-// PERF: Debounced MutationObserver - only check new reveals after DOM settles
+// PERF: Debounced MutationObserver - scoped to main-view only
 let revealDebounceTimer = null;
 const contentObserver = new MutationObserver(() => {
     // Don't fire on every single mutation - wait for DOM to settle
     clearTimeout(revealDebounceTimer);
     revealDebounceTimer = setTimeout(() => {
-        document.querySelectorAll('.reveal:not(.visible)').forEach(el => revealObserver.observe(el));
-    }, 300);
+        // PERF: Only scan main-view, not the entire body (avoids triggering on typing in dashboard/AI chat)
+        const scope = document.getElementById('main-view') || document.body;
+        scope.querySelectorAll('.reveal:not(.visible)').forEach(el => revealObserver.observe(el));
+    }, 500);
 });
 
 document.addEventListener('DOMContentLoaded', () => {
     initReveal();
-    // PERF: Only watch direct children changes, not deep subtree attributes
-    contentObserver.observe(document.body, { childList: true, subtree: true });
+    // PERF: Only observe main-view to avoid triggering on dashboard edits and AI chat
+    const scope = document.getElementById('main-view') || document.body;
+    contentObserver.observe(scope, { childList: true, subtree: true });
 });

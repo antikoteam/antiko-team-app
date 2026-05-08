@@ -495,17 +495,14 @@ async function handleSend(overrideText) {
         }
 
         chatHistory.push({ role: "assistant", content: reply });
-
-        // Play sound if available
-        if (typeof window.playSound === "function") {
-            window.playSound("nav");
-        }
     } catch (error) {
         removeTypingIndicator();
         addMessage("⚠️ حصل مشكلة في الاتصال. جرب تاني كمان شوية أو تواصل مع الفريق مباشرة.", "ai");
     } finally {
         isWaitingForResponse = false;
         updateSendButton(false);
+        // Re-focus input to keep chat active
+        if (chatInput) chatInput.focus();
     }
 }
 
@@ -582,21 +579,34 @@ if (closeBtn) {
 }
 
 if (sendBtn) {
-    sendBtn.addEventListener("click", () => handleSend());
+    sendBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent document click handler from closing chat
+        handleSend();
+    });
 }
 
 if (chatInput) {
     chatInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
+            e.stopPropagation();
             handleSend();
         }
+    });
+}
+
+// Prevent any click inside the chat box from closing it
+if (chatBox) {
+    chatBox.addEventListener("click", (e) => {
+        e.stopPropagation();
     });
 }
 
 // Close chat when clicking outside (with guard)
 document.addEventListener("click", (e) => {
     if (!chatBox || chatBox.classList.contains("hidden")) return;
+    // Never close while waiting for AI response
+    if (isWaitingForResponse) return;
     if (chatBox.contains(e.target)) return; // Click inside chat
     if (toggleBtn && toggleBtn.contains(e.target)) return; // Click on toggle btn
     const mobileAiBtn = document.getElementById("btn-nav-ai");

@@ -184,49 +184,33 @@ async function checkForUpdates() {
 setInterval(checkForUpdates, 180000);
 checkForUpdates(); // Also check on boot
 
-// --- Audio System (Game-ready) ---
+// --- Audio System (Background Music Only) ---
 const sounds = {
-    back: new Audio('assets/audio/back.mp3'),
-    buy: new Audio('assets/audio/buy.mp3'),
-    menu: new Audio('assets/audio/menu.mp3'),
-    order: new Audio('assets/audio/order.mp3'),
-    nav: new Audio('assets/audio/nav.mp3'),
     bg: new Audio('assets/audio/bg.mp3')
 };
 
-// تحميل مسبق ذكي (Smart Preload - bg only needs full, others load on demand)
-Object.entries(sounds).forEach(([key, s]) => {
-    s.preload = (key === 'bg') ? 'auto' : 'metadata';
-    s.load();
-});
+// Smart Preload (bg only)
+sounds.bg.preload = 'auto';
+sounds.bg.load();
 
 sounds.bg.loop = true;
 sounds.bg.volume = 0.30; // رفعنا الصوت شوية عشان يكون مسموع وهادي
 
 window.playSound = function (type) {
-    if (!appSettings.soundEnabled) return;
-    const s = sounds[type] || sounds.menu;
-    // تشغيل مباشر وسريع جداً
-    s.currentTime = 0;
-    s.play().catch(e => console.log('Audio blocked', e));
+    // أصوات الأزرار متوقفة بالكامل
+    return;
 };
 
 // System Settings Logic
 const appSettings = JSON.parse(localStorage.getItem('antiko_settings')) || {
-    soundEnabled: true,
-    musicEnabled: true, // تفعيل الموسيقى تلقائياً
+    musicEnabled: true,
     theme: 'dark'
 };
 if (appSettings.musicEnabled === undefined) appSettings.musicEnabled = true;
 
 // Ensure new defaults exist if they were missing in old localStorage
-if (appSettings.bgMusicEnabled === undefined) appSettings.bgMusicEnabled = true;
 if (appSettings.bgMusicVolume === undefined) appSettings.bgMusicVolume = 50;
-if (appSettings.volume === undefined) appSettings.volume = 50;
 
-const volumeSlider = document.getElementById('sound-volume');
-const soundToggle = document.getElementById('sound-toggle');
-const volumeLabel = document.getElementById('volume-label');
 const btnNavSettings = document.getElementById('btn-nav-settings');
 
 const bgVolumeSlider = document.getElementById('bg-sound-volume');
@@ -234,11 +218,6 @@ const bgSoundToggle = document.getElementById('bg-sound-toggle');
 const bgVolumeLabel = document.getElementById('bg-volume-label');
 
 // Initialize UI from settings
-if (volumeSlider) {
-    volumeSlider.value = appSettings.volume;
-    if (volumeLabel) volumeLabel.textContent = `${appSettings.volume}%`;
-}
-if (soundToggle) soundToggle.checked = appSettings.soundEnabled;
 
 if (bgVolumeSlider) {
     bgVolumeSlider.value = appSettings.bgMusicVolume;
@@ -325,7 +304,10 @@ document.addEventListener("visibilitychange", () => {
 });
 
 // 3. Fallback: blur/focus on window (catches minimize on Android WebView)
+// PERF: Guard against input focus triggering blur (keyboard open/close)
 window.addEventListener("blur", () => {
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
     pauseAudioGlobally();
 });
 window.addEventListener("focus", () => {
@@ -424,6 +406,9 @@ function applyAppFlags() {
             window._antikoProtectionActive = true;
             document.addEventListener('keydown', (e) => {
                 if (!appFlags.protectionEnabled) return;
+                // PERF: Skip instantly if user is typing in an input
+                const activeTag = document.activeElement?.tagName;
+                if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
                 // F12
                 if (e.key === 'F12') { e.preventDefault(); return; }
                 // Ctrl+Shift+I or Ctrl+Shift+J
@@ -1027,45 +1012,7 @@ allBackBtns.forEach(btn => btn.onclick = () => navigateTo('main-menu'));
 if (backToServicesBtn) backToServicesBtn.onclick = () => navigateTo('services-section');
 
 // Global PointerDown Listener for Instant Sound (Ultra Fast)
-document.addEventListener('pointerdown', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-    const btn = e.target.closest('button, .premium-btn, .menu-card, .glass-card, .menu-item, .action-btn, .bottom-nav-item, .sidebar-menu a, .nav-item, .buy-btn, [onclick], .selectable-card, .sidebar-item, a');
-    if (!btn) return;
-
-    // Optimized isClickable check (No getComputedStyle for ultra-fast response)
-    const isClickable = btn.tagName === 'BUTTON' ||
-        btn.tagName === 'A' ||
-        btn.hasAttribute('onclick') ||
-        btn.classList.contains('premium-btn') ||
-        btn.classList.contains('menu-item') ||
-        btn.classList.contains('action-btn') ||
-        btn.classList.contains('nav-tile') ||
-        btn.id.startsWith('open-'); // Matches open-team, open-store
-
-    if (!isClickable) return;
-
-    const text = (btn.textContent || "").toLowerCase();
-    const id = btn.id || "";
-    const cls = btn.className || "";
-
-    // 1. صوت الرجوع
-    if (id.includes('back') || text.includes('عودة') || text.includes('back')) {
-        playSound('back');
-    }
-    // 2. صوت الـ Nav السفلي
-    else if (id.startsWith('btn-nav-') || cls.includes('bottom-nav-item')) {
-        playSound('nav');
-    }
-    // 3. صوت الشراء (فتح المنتج أو الضغط على شراء)
-    else if (cls.includes('buy-btn') || text.includes('buy') || text.includes('شراء') || cls.includes('card-inner')) {
-        playSound('buy');
-    }
-    // 4. خيارات القائمة والطلبات
-    else {
-        playSound('menu');
-    }
-}, { passive: true });
+// (Click sound listener removed as per request)
 
 // Special case for Final Order Submit
 const confirmOrderBtn = document.getElementById('confirm-order-btn');
@@ -1083,20 +1030,7 @@ if (btnNavSettings) {
     });
 }
 
-if (volumeSlider) {
-    volumeSlider.addEventListener('input', (e) => {
-        appSettings.volume = parseInt(e.target.value);
-        if (volumeLabel) volumeLabel.textContent = `${appSettings.volume}%`;
-        saveSettings();
-    });
-}
-
-if (soundToggle) {
-    soundToggle.addEventListener('change', (e) => {
-        appSettings.soundEnabled = e.target.checked;
-        saveSettings();
-    });
-}
+// (Settings listeners for button sounds removed)
 
 // --- Background Music Listeners ---
 if (bgVolumeSlider) {
@@ -1125,20 +1059,7 @@ const initMusicOnInteraction = () => {
 document.addEventListener('click', initMusicOnInteraction, { once: true });
 document.addEventListener('touchstart', initMusicOnInteraction, { once: true });
 
-const testSoundBtn = document.getElementById('test-sound-btn');
-const testVisual = document.getElementById('test-sound-visual');
-if (testSoundBtn) {
-    testSoundBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        playClick();
-        if (testVisual) {
-            testVisual.classList.remove('hidden');
-            setTimeout(() => {
-                testVisual.classList.add('hidden');
-            }, 1000);
-        }
-    });
-}
+// (Test sound button removed)
 
 
 
@@ -1795,11 +1716,15 @@ if (canvas) {
     document.addEventListener('focusin', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
             isUserTyping = true;
+            // PERF: Fully cancel animation loop during typing to free CPU
+            if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
         }
     });
     document.addEventListener('focusout', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
             isUserTyping = false;
+            // Restart animation when user stops typing
+            if (!animationId) animate();
         }
     });
 

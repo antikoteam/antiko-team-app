@@ -1083,25 +1083,7 @@
                                     إعلان أي قسم خاص من خلال (إدارة الأقسام -> تعديل القسم).</p>
                             </div>
 
-                            <h3
-                                style="margin-top: 30px; margin-bottom: 20px; color: var(--neon-red); border-bottom: 1px solid var(--border-light); padding-bottom: 10px;">
-                                3. صوت أزرار النظام</h3>
-
-                            <div class="form-group">
-                                <label class="form-label">تغيير صوت الضغط على الأزرار</label>
-                                <div style="display: flex; gap: 15px; align-items: center;">
-                                    <input type="file" id="set-btnSoundFile" class="form-control" accept="audio/*"
-                                        style="padding: 10px; flex: 1;">
-                                    <button type="button" id="preview-btn-sound" class="premium-btn secondary"
-                                        style="white-space: nowrap; height: 50px;">
-                                        <i class="ph-fill ph-play-circle"></i> تجربة الصوت
-                                    </button>
-                                </div>
-                                <input type="hidden" id="set-btnSoundBase64">
-                                <div id="sound-status-msg"
-                                    style="font-size: 0.85rem; margin-top: 8px; color: var(--text-secondary);">اختياري:
-                                    يمكنك رفع ملف صوتي (MP3/WAV) لتغيير صوت الضغط الافتراضي.</div>
-                            </div>
+                            <!-- Button sound settings removed -->
 
                             <div class="mt-5"
                                 style="text-align: left; padding-top: 20px; border-top: 1px solid var(--border-light); display: flex; gap: 10px;">
@@ -1627,8 +1609,7 @@
 
     <!-- Smart Order Modal -->
     <div id="smart-order-modal" class="modal-overlay hidden" style="z-index: 2000;">
-        <div class="modal slide-in glass-card"
-            style="max-width: 450px; padding: 0; background: rgba(10,10,15,0.85);">
+        <div class="modal slide-in glass-card" style="max-width: 450px; padding: 0; background: rgba(10,10,15,0.85);">
             <div class="card-edge"></div>
             <button class="modal-close" onclick="closeModal('smart-order-modal')"
                 style="top: 20px; right: 20px; z-index: 10;"><i class="ph ph-x"></i></button>
@@ -1857,28 +1838,8 @@
             </div>
             <h2 style="font-size: 1.8rem; color: #fff; margin-bottom: 30px;">إعدادات النظام</h2>
 
-            <div class="form-group" style="text-align: right; margin-bottom: 25px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <label class="form-label" style="margin:0; font-size: 1.1rem; color: #fff;">صوت الزراير</label>
-                    <div class="flex-gap-10">
-                        <span id="volume-label" style="color: var(--neon-red); font-weight: 800;">50%</span>
-                    </div>
-                </div>
-                <input type="range" id="sound-volume" min="0" max="100" value="30" class="form-control"
-                    style="background: rgba(255,255,255,0.1); accent-color: var(--neon-red); height: 8px; padding: 0;">
-            </div>
-
-            <div class="form-group"
-                style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 30px;">
-                <label class="form-label" style="margin:0; font-size: 1.1rem; color: #fff; cursor: pointer;"
-                    for="sound-toggle">تفعيل الأصوات</label>
-                <input type="checkbox" id="sound-toggle" checked
-                    style="width: 24px; height: 24px; accent-color: var(--neon-red); cursor: pointer;">
-            </div>
-
             <!-- Background Music Controls -->
-            <div class="form-group"
-                style="text-align: right; margin-bottom: 25px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 20px;">
+            <div class="form-group" style="text-align: right; margin-bottom: 25px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <label class="form-label" style="margin:0; font-size: 1.1rem; color: #fff;">صوت الخلفية
                         الموسيقية</label>
@@ -1897,7 +1858,8 @@
                 <input type="checkbox" id="bg-sound-toggle" checked
                     style="width: 24px; height: 24px; accent-color: var(--neon-red); cursor: pointer;">
             </div>
-            <a href="privacy.html" class="premium-btn secondary w-100" style="padding: 12px; margin-bottom: 20px; display: block; text-decoration: none;">
+            <a href="privacy.html" class="premium-btn secondary w-100"
+                style="padding: 12px; margin-bottom: 20px; display: block; text-decoration: none;">
                 <i class="ph ph-shield-check"></i> سياسة الخصوصية
             </a>
 
@@ -1905,15 +1867,6 @@
                 style="padding: 15px; margin-bottom: 10px;">
                 <i class="ph ph-check"></i> حفظ الإعدادات
             </button>
-
-            <button id="test-sound-btn" class="premium-btn secondary w-100"
-                style="padding: 12px; margin-top: 10px; border: 1px dashed var(--neon-red);">
-                <i class="ph-fill ph-speaker-high"></i> اختبار الصوت (تجربة)
-            </button>
-            <div id="test-sound-visual" class="hidden"
-                style="margin-top: 10px; color: var(--neon-red); font-size: 0.9rem; font-weight: 700;">
-                <i class="ph ph-wave-sine"></i> جاري تشغيل الصوت...
-            </div>
         </div>
     </div>
 

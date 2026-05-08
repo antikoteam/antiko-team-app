@@ -15,12 +15,13 @@
 /* Reduce paint areas */
 input, textarea, select {
     will-change: auto;
-    contain: layout style;
+    /* PERF: contain removed — causes focus/keyboard issues on mobile WebViews */
 }
 
 /* === MOBILE OPTIMIZATIONS === */
 @media (max-width: 768px) {
-    * {
+    /* PERF: Remove heavy effects globally, but preserve input focus styles */
+    *:not(input):not(textarea):not(.form-control):not(select) {
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
         box-shadow: none !important;

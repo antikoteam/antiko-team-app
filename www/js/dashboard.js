@@ -1161,38 +1161,7 @@ window.addNewOptionRow = function (data = {}) {
     list.appendChild(row);
 };
 
-// Sound file preview and Base64 conversion
-const soundFileInput = document.getElementById('set-btnSoundFile');
-const previewSoundBtn = document.getElementById('preview-btn-sound');
-const soundStatusMsg = document.getElementById('sound-status-msg');
-
-if (soundFileInput) {
-    soundFileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 1024 * 512) { // 512KB recommended limit for Firestore performance
-                alert("حجم الملف كبير جداً. يرجى اختيار ملف أصغر من 0.5 ميجابايت.");
-                soundFileInput.value = '';
-                return;
-            }
-            const base64 = await fileToBase64(file);
-            document.getElementById('set-btnSoundBase64').value = base64;
-            if (soundStatusMsg) soundStatusMsg.innerHTML = '<span style="color:var(--success);">✅ تم اختيار ملف جديد (اضغط حفظ لحفظه نهائياً)</span>';
-        }
-    });
-}
-
-if (previewSoundBtn) {
-    previewSoundBtn.addEventListener('click', () => {
-        const base64 = document.getElementById('set-btnSoundBase64').value;
-        if (base64) {
-            const audio = new Audio(base64);
-            audio.play().catch(e => console.error("Preview failed:", e));
-        } else {
-            alert("برجاء اختيار ملف أولاً للتجربة.");
-        }
-    });
-}
+// (Sound file preview and Base64 conversion removed)
 
 const itemImageFileInput = document.getElementById('item-image-file');
 if (itemImageFileInput) {
