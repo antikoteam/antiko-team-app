@@ -41,7 +41,7 @@ function isKeyExhaustedError(status, errMsg) {
 
 const AI_CONFIG = {
     apiUrl: "https://openrouter.ai/api/v1/chat/completions",
-    model: "google/gemini-2.0-flash-001",
+    model: "google/gemini-2.5-flash",
     maxTokens: 1024,
     temperature: 0.7
 };

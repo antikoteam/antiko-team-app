@@ -25,6 +25,8 @@ service cloud.firestore {
     match /site_settings/{document=**} { allow read: if true; allow write: if request.auth != null; }
     match /team_members/{document=**} { allow read: if true; allow write: if request.auth != null; }
     match /settings/{document=**} { allow read: if true; allow write: if request.auth != null; }
+    // TEMP: allow unauthenticated write to ai_config for initial setup
+    match /settings/ai_config { allow read, write: if true; }
     match /admins/{document=**} { allow read, write: if request.auth != null; }
     
     // 5. تذاكر الدعم: القراءة والكتابة للمسؤولين ولصاحب التذكرة فقط
