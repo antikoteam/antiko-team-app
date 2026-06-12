@@ -4,13 +4,48 @@
 import { db, collection, getDocs, getDoc, doc, query, orderBy } from "./firebase-config.js";
 
 // --- Configuration ---
+// Key Rotation Pool — dynamically loaded from Firestore
+let API_KEYS = [];
+let currentKeyIndex = 0;
+
+function getCurrentKey() {
+    return API_KEYS[currentKeyIndex] || "";
+}
+
+// Called when a key fails — moves to next key silently
+function rotateToNextKey() {
+    currentKeyIndex++;
+    if (currentKeyIndex < API_KEYS.length) {
+        console.warn(`AI: Key #${currentKeyIndex - 1} exhausted → switching to key #${currentKeyIndex}`);
+        return true; // More keys available
+    }
+    // All keys exhausted — reset for next session
+    currentKeyIndex = 0;
+    console.error("AI: All API keys exhausted.");
+    return false; // No more keys
+}
+
+// Returns true if the HTTP status means the key is dead (not a network error)
+function isKeyExhaustedError(status, errMsg) {
+    if (status === 401 || status === 402 || status === 429) return true;
+    if (errMsg && (
+        errMsg.includes("credit") ||
+        errMsg.includes("quota") ||
+        errMsg.includes("billing") ||
+        errMsg.includes("insufficient") ||
+        errMsg.includes("rate limit") ||
+        errMsg.includes("key")
+    )) return true;
+    return false;
+}
+
 const AI_CONFIG = {
     apiUrl: "https://openrouter.ai/api/v1/chat/completions",
-    apiKey: "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",
     model: "google/gemini-2.0-flash-001",
     maxTokens: 1024,
     temperature: 0.7
 };
+
 
 // --- State ---
 let chatHistory = [];
@@ -113,6 +148,26 @@ async function loadAppContext() {
                 context.adminWhatsApp = fl.adminWa || "";
             }
         } catch (e) { /* ignore */ }
+
+        // 5. Load AI config dynamically from Firestore
+        try {
+            const aiSnap = await getDoc(doc(db, "settings", "ai_config"));
+            if (aiSnap.exists()) {
+                const aiData = aiSnap.data();
+                if (aiData.api_keys && aiData.api_keys.length > 0) {
+                    API_KEYS = aiData.api_keys;
+                }
+                if (aiData.api_base_url) {
+                    AI_CONFIG.apiUrl = aiData.api_base_url.replace(/\/$/, "") + "/chat/completions";
+                }
+                if (aiData.api_model_name) {
+                    AI_CONFIG.model = aiData.api_model_name;
+                }
+                console.log("AI: Dynamic config loaded successfully. Model:", AI_CONFIG.model);
+            }
+        } catch (e) {
+            console.warn("AI: Could not load dynamic ai_config", e);
+        }
 
         appContext = context;
         console.log("AI: App context loaded successfully.", context);
@@ -340,9 +395,9 @@ function showSuggestions() {
 }
 
 // ==========================================
-// AI API CALL (OpenRouter with Streaming)
+// AI API CALL (OpenRouter with Streaming + Key Rotation)
 // ==========================================
-async function getAIResponse(userMessage) {
+async function getAIResponse(userMessage, retryCount = 0) {
     // Build messages array
     const systemPrompt = buildSystemPrompt();
 
@@ -360,7 +415,7 @@ async function getAIResponse(userMessage) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${AI_CONFIG.apiKey}`,
+                "Authorization": `Bearer ${getCurrentKey()}`,
                 "HTTP-Referer": window.location.origin,
                 "X-Title": "Antiko Team App"
             },
@@ -375,8 +430,18 @@ async function getAIResponse(userMessage) {
 
         if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
-            console.error("AI API Error:", response.status, errData);
-            throw new Error(errData.error?.message || `خطأ ${response.status}`);
+            const errMsg = errData.error?.message || "";
+            console.error(`AI API Error (key #${currentKeyIndex}):`, response.status, errMsg);
+
+            // If key is dead, rotate and retry automatically
+            if (isKeyExhaustedError(response.status, errMsg)) {
+                const hasMore = rotateToNextKey();
+                if (hasMore && retryCount < API_KEYS.length) {
+                    return await getAIResponse(userMessage, retryCount + 1);
+                }
+            }
+
+            throw new Error(errMsg || `خطأ ${response.status}`);
         }
 
         // Handle streaming response
@@ -432,8 +497,8 @@ async function getAIResponse(userMessage) {
     }
 }
 
-// Fallback non-streaming request
-async function getAIResponseFallback(userMessage) {
+// Fallback non-streaming request (also supports key rotation)
+async function getAIResponseFallback(userMessage, retryCount = 0) {
     const systemPrompt = buildSystemPrompt();
     const recentHistory = chatHistory.slice(-10);
 
@@ -447,7 +512,7 @@ async function getAIResponseFallback(userMessage) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${AI_CONFIG.apiKey}`,
+            "Authorization": `Bearer ${getCurrentKey()}`,
             "HTTP-Referer": window.location.origin,
             "X-Title": "Antiko Team App"
         },
@@ -459,6 +524,18 @@ async function getAIResponseFallback(userMessage) {
             stream: false
         })
     });
+
+    if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        const errMsg = errData.error?.message || "";
+        if (isKeyExhaustedError(response.status, errMsg)) {
+            const hasMore = rotateToNextKey();
+            if (hasMore && retryCount < API_KEYS.length) {
+                return await getAIResponseFallback(userMessage, retryCount + 1);
+            }
+        }
+        throw new Error(errMsg || `خطأ ${response.status}`);
+    }
 
     const data = await response.json();
     const text = data.choices?.[0]?.message?.content || "عذراً، لم أتمكن من الرد. حاول مرة أخرى.";
@@ -485,6 +562,15 @@ async function handleSend(overrideText) {
     showTypingIndicator();
 
     try {
+        if (API_KEYS.length === 0) {
+            await loadAppContext();
+        }
+        if (API_KEYS.length === 0) {
+            removeTypingIndicator();
+            addMessage("⚠️ لم يتم تهيئة مفاتيح الـ API للمساعد الذكي بعد. يرجى تهيئتها من لوحة التحكم الخاصة بالمدير.", "ai");
+            return;
+        }
+
         const reply = await getAIResponse(text);
 
         // If streaming handled it, reply is already shown
