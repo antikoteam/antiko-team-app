@@ -1,2 +1,7 @@
 node_modules
 node_modules
+
+tmp/
+update_ai_config.mjs
+*.key
+*.secret
