@@ -2413,15 +2413,17 @@ async function saveAppFlags() {
     }
 }
 window.saveAppFlags = saveAppFlags;
+window.initDashboard = initDashboard;
 
 // --- Dashboard Initialization (Post-Load) ---
 window.loadAdminTickets();
 
 // --- Failsafe Initialization ---
 setTimeout(() => {
+    // In dashboard.html, dashboard-view is the root element, so check if it exists
     const dv = document.getElementById('dashboard-view');
-    if (dv && !dv.classList.contains('hidden')) {
+    if (dv) {
         console.log("Antiko: Failsafe init triggered.");
-        if (typeof initDashboard === 'function') initDashboard();
+        if (typeof window.initDashboard === 'function') window.initDashboard();
     }
-}, 3000);
+}, 1000);

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فريق العمل - Antiko</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;800&family=Orbitron:wght@600;800;900&family=Anton&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/shared.css?v=2.0.2">
+    <link rel="stylesheet" href="css/admin.css?v=2.0.2">
+    <link rel="stylesheet" href="css/app.css?v=2.0.2">
+    <link rel="stylesheet" href="css/laptop-ui.css?v=2.0.2">
+    <link rel="stylesheet" href="css/mobile-opt.css">
+    <link rel="stylesheet" href="css/logo-styles.css">
+    <style>
+        :root {
+            --bg-dark: #000000 !important;
+        }
+
+        body {
+            background-color: #000000 !important;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .bg-effects {
+            z-index: 0 !important;
+            display: block !important;
+            opacity: 1 !important;
+        }
+    </style>
+    <script type="module" src="js/flags.js"></script>
+    <script src="js/main-init.js"></script>
+</head>
+
+<body>
+    <!-- Background Effects -->
+    <div class="bg-effects">
+        <canvas id="bg-lines" class="bg-lines-canvas"></canvas>
+        <div class="cyber-grid"></div>
+        <div class="red-flare top-right"></div>
+        <div class="red-flare bottom-left"></div>
+        <div class="scanlines"></div>
+        <div class="noise"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="container top-nav">
+        <div style="display: flex; gap: 10px;">
+            <button onclick="window.location.href='index.html'" class="premium-btn secondary nav-btn-small">
+                <i class="ph ph-house"></i> الرئيسية
+            </button>
+            <button onclick="window.history.back()" class="premium-btn secondary nav-btn-small" style="background: rgba(255, 0, 60, 0.1); border-color: var(--neon-red); color: var(--neon-red);">
+                <i class="ph ph-arrow-left"></i> رجوع
+            </button>
+        </div>
+        <div id="admin-controls">
+            <button id="nav-login-btn" class="premium-btn secondary nav-btn-small">تسجيل الدخول</button>
+            <button id="nav-dashboard-btn" class="premium-btn hidden nav-btn-small">
+                <i class="ph ph-squares-four"></i> لوحة التحكم
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div id="main-view" style="position: relative; z-index: 10;">
+        <main class="container">
+            <!-- Loading State -->
+            <div id="loader" class="loader-container">
+                <div class="loader-spinner"></div>
+                <p>جاري تحميل فريق العمل...</p>
+            </div>
+
+            <div id="app-content" class="hidden">
+                <section class="services-section page-view" id="team-section" style="display: block;">
+                    <div class="flex justify-between items-center mb-25">
+                        <h2 class="section-title" style="margin-bottom: 0;">فريق عمل Antiko</h2>
+                        <button onclick="window.history.back()" class="premium-btn secondary" style="padding: 10px 20px;">
+                            <i class="ph ph-arrow-right"></i> رجوع للخلف
+                        </button>
+                    </div>
+                    <div class="grid-cards" id="team-public-grid">
+                        <!-- Will be populated dynamically by app.js -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <div class="bottom-nav-item" onclick="window.location.href='index.html'">
+            <i class="ph-fill ph-house"></i>
+            <span>الرئيسية</span>
+        </div>
+        <div class="bottom-nav-item" onclick="window.location.href='ai.html'">
+            <i class="ph-fill ph-sparkle"></i>
+            <span>المساعد</span>
+        </div>
+        <div class="bottom-nav-item" onclick="window.location.href='support.html'">
+            <i class="ph-fill ph-headset"></i>
+            <span>الدعم</span>
+        </div>
+        <div class="bottom-nav-item" onclick="window.location.href='settings.html'">
+            <i class="ph-fill ph-gear"></i>
+            <span>الإعدادات</span>
+        </div>
+    </nav>
+
+    <script type="module" src="js/app.js?v=2.0.6"></script>
+    <script src="js/animations.js?v=2.0.6"></script>
+    <script type="module">
+        // Auto trigger team rendering on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (typeof window.navigateTo === 'function') {
+                    window.navigateTo('team-section');
+                }
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>

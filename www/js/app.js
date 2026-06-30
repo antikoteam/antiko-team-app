@@ -40,7 +40,7 @@ const accountEmail = document.getElementById('account-email');
 const modalLogoutBtn = document.getElementById('modal-logout-btn');
 
 const mainView = document.getElementById('main-view');
-const dashboardView = document.getElementById('dashboard-view');
+// dashboardView no longer in index.html — now lives in dashboard.html
 
 // Privacy Policy Elements
 const privacyModal = document.getElementById('privacy-policy-modal');
@@ -476,10 +476,6 @@ onAuthStateChanged(auth, (user) => {
         navAccountBtn.classList.add('hidden');
 
         if (modalDashBtn) modalDashBtn.classList.add('hidden');
-
-        // Kick back to main if in dashboard
-        dashboardView.classList.add('hidden');
-        mainView.classList.remove('hidden');
     }
 });
 
@@ -492,27 +488,10 @@ if (navLoginBtn) {
     });
 }
 
-// Dashboard Toggle
+// Dashboard Toggle — redirect to dashboard.html
 if (navDashboardBtn) {
     navDashboardBtn.addEventListener('click', () => {
-        if (dashboardView.classList.contains('hidden')) {
-            // Show Dashboard
-            mainView.classList.add('hidden');
-            dashboardView.classList.remove('hidden');
-            navDashboardBtn.innerHTML = '<i class="ph ph-house"></i> العودة للموقع';
-            // Load data
-            setTimeout(() => {
-                document.dispatchEvent(new Event('dashboardOpened'));
-            }, 100);
-        } else {
-            // Show Main Site
-            dashboardView.classList.add('hidden');
-            mainView.classList.remove('hidden');
-            navDashboardBtn.innerHTML = '<i class="ph ph-squares-four"></i> لوحة التحكم';
-            // Trigger cleanup in dashboard
-            document.dispatchEvent(new Event('dashboardClosed'));
-            if (typeof loadPublicData === 'function') loadPublicData();
-        }
+        window.location.href = 'dashboard.html';
     });
 }
 
@@ -535,12 +514,11 @@ if (modalLogoutBtn) {
     });
 }
 
-// Dashboard Btn inside Account Modal
+// Dashboard Btn inside Account Modal — redirect to dashboard.html
 const modalDashBtnGlobal = document.getElementById('modal-dashboard-btn');
 if (modalDashBtnGlobal) {
     modalDashBtnGlobal.addEventListener('click', () => {
-        accountModal.classList.add('hidden');
-        if (navDashboardBtn) navDashboardBtn.click();
+        window.location.href = 'dashboard.html';
     });
 }
 
@@ -828,6 +806,20 @@ function navigateTo(sectionId) {
 
     if (typeof setActiveNavItem === 'function') setActiveNavItem(activeNavId);
 
+    // Dynamic routing to standalone files
+    if (sectionId === 'team-section' && !window.location.pathname.includes('team.html')) {
+        window.location.href = 'team.html';
+        return;
+    }
+    if ((sectionId === 'services-section' || sectionId === 'countries-section') && !window.location.pathname.includes('store.html')) {
+        window.location.href = 'store.html';
+        return;
+    }
+    if (sectionId === 'main-menu' && !window.location.pathname.includes('index.html')) {
+        window.location.href = 'index.html';
+        return;
+    }
+
     if (sectionId === 'services-section' || sectionId === 'team-section') {
         loadPublicData();
         if (sectionId === 'team-section' && typeof renderTeamPublic === 'function') renderTeamPublic();
@@ -856,8 +848,8 @@ function setActiveNavItem(id) {
     });
 }
 
-if (btnNavHome) btnNavHome.onclick = () => navigateTo('main-menu');
-if (btnNavStore) btnNavStore.onclick = () => navigateTo('services-section');
+if (btnNavHome) btnNavHome.onclick = () => window.location.href = 'index.html';
+if (btnNavStore) btnNavStore.onclick = () => window.location.href = 'store.html';
 if (btnNavAccount) {
     btnNavAccount.onclick = () => {
         if (currentUser) {
@@ -872,14 +864,7 @@ if (btnNavAccount) {
 
 if (btnNavAi) {
     btnNavAi.onclick = () => {
-        // Use the global functions exposed by ai-chat.js (toggle button is hidden on mobile)
-        const chatBox = document.getElementById('ai-chat-box');
-        if (chatBox && !chatBox.classList.contains('hidden')) {
-            if (typeof window.closeAiChat === 'function') window.closeAiChat();
-        } else {
-            if (typeof window.openAiChat === 'function') window.openAiChat();
-        }
-        setActiveNavItem('btn-nav-ai');
+        window.location.href = 'ai.html';
     };
 }
 
@@ -887,9 +872,7 @@ const btnNavSupport = document.getElementById('btn-nav-support');
 const supportModal = document.getElementById('support-modal');
 if (btnNavSupport) {
     btnNavSupport.onclick = () => {
-        supportModal.classList.remove('hidden');
-        setActiveNavItem('btn-nav-support');
-        loadChatMessages(currentUser); // تحميل الرسايل فور الفتح
+        window.location.href = 'support.html';
     }
 }
 
@@ -1974,5 +1957,11 @@ async function renderTeamPublic() {
     }
 }
 
-// Initial load
-loadPublicData();
+// Initial load configuration based on active page
+if (window.location.pathname.includes('team.html')) {
+    if (typeof renderTeamPublic === 'function') renderTeamPublic();
+} else if (window.location.pathname.includes('store.html')) {
+    loadPublicData();
+} else {
+    loadPublicData();
+}

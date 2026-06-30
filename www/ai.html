@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المساعد الذكي - Antiko</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;800&family=Orbitron:wght@600;800;900&family=Anton&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/shared.css?v=2.0.2">
+    <link rel="stylesheet" href="css/admin.css?v=2.0.2">
+    <link rel="stylesheet" href="css/app.css?v=2.0.2">
+    <link rel="stylesheet" href="css/laptop-ui.css?v=2.0.2">
+    <link rel="stylesheet" href="css/mobile-opt.css">
+    <style>
+        :root {
+            --bg-dark: #000000 !important;
+        }
+
+        body {
+            background-color: #000000 !important;
+            overflow: hidden; /* Fix chat scroll inside container */
+        }
+
+        .ai-chat-page-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 140px);
+            margin-top: 20px;
+            background: rgba(10, 10, 15, 0.6);
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .ai-chat-body-full {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scrollbar-width: thin;
+        }
+    </style>
+    <script type="module" src="js/flags.js"></script>
+    <script src="js/main-init.js"></script>
+</head>
+
+<body>
+    <!-- Background Effects -->
+    <div class="bg-effects">
+        <canvas id="bg-lines" class="bg-lines-canvas"></canvas>
+        <div class="cyber-grid"></div>
+        <div class="red-flare top-right"></div>
+        <div class="red-flare bottom-left"></div>
+        <div class="scanlines"></div>
+        <div class="noise"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="container top-nav" style="position: relative; z-index: 100;">
+        <div style="display: flex; gap: 10px;">
+            <button onclick="window.location.href='index.html'" class="premium-btn secondary nav-btn-small">
+                <i class="ph ph-house"></i> الرئيسية
+            </button>
+            <button onclick="window.history.back()" class="premium-btn secondary nav-btn-small" style="background: rgba(255, 0, 60, 0.1); border-color: var(--neon-red); color: var(--neon-red);">
+                <i class="ph ph-arrow-left"></i> رجوع
+            </button>
+        </div>
+        <div id="admin-controls">
+            <button id="nav-login-btn" class="premium-btn secondary nav-btn-small">تسجيل الدخول</button>
+            <button id="nav-dashboard-btn" class="premium-btn hidden nav-btn-small">
+                <i class="ph ph-squares-four"></i> لوحة التحكم
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container" style="position: relative; z-index: 10;">
+        <div class="ai-chat-page-container">
+            <div class="ai-chat-header" style="border-bottom: 1px solid var(--border-light); background: rgba(0,0,0,0.4); padding: 15px 25px;">
+                <div class="ai-info" style="display: flex; align-items: center; gap: 15px;">
+                    <div class="ai-avatar" style="width: 45px; height: 45px; background: var(--neon-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color:#fff; position: relative;">
+                        <i class="ph-fill ph-robot"></i>
+                        <div class="online-indicator" style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; background: #00ff88; border-radius: 50%; border: 2px solid #000;"></div>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; color: #fff; font-size: 1.1rem;">المساعد الذكي لـ Antiko</h4>
+                        <span class="status-text" style="font-size: 0.8rem; color: #00ff88;">متصل ونشط الآن 🌸</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Area -->
+            <div id="ai-chat-messages" class="ai-chat-body-full">
+                <!-- Initial greeting message -->
+                <div class="ai-msg" style="display: flex; gap: 10px; align-self: flex-start; max-width: 85%;">
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px 18px; border-radius: 18px; border-bottom-right-radius: 0; color: #ddd; font-size: 0.95rem; line-height: 1.6;">
+                        أهلاً بك! أنا مساعدتك الذكية (ميسا) من فريق Antiko. كيف يمكنني إرشادك اليوم بخصوص خدماتنا أو طريقة الطلب؟ ✨
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Input -->
+            <div class="ai-chat-footer" style="padding: 20px; border-top: 1px solid var(--border-light); background: rgba(0,0,0,0.3);">
+                <div class="chat-input-wrapper" style="display: flex; gap: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-light); border-radius: 30px; padding: 5px 15px; align-items: center;">
+                    <input type="text" id="ai-chat-input" placeholder="اطلب أي معلومة أو مساعدة..." autocomplete="off" style="flex: 1; background: transparent; border: none; outline: none; color: #fff; padding: 10px; font-size: 1rem; font-family: inherit;">
+                    <button id="send-ai-msg" class="send-btn" style="background: var(--neon-red); border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; transition: transform 0.2s;">
+                        <i class="ph-fill ph-paper-plane-right" style="font-size: 1.2rem;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <div class="bottom-nav-item" onclick="window.location.href='index.html'">
+            <i class="ph-fill ph-house"></i>
+            <span>الرئيسية</span>
+        </div>
+        <div class="bottom-nav-item active" onclick="window.location.href='ai.html'">
+            <i class="ph-fill ph-sparkle"></i>
+            <span>المساعد</span>
+        </div>
+        <div class="bottom-nav-item" onclick="window.location.href='support.html'">
+            <i class="ph-fill ph-headset"></i>
+            <span>الدعم</span>
+        </div>
+        <div class="bottom-nav-item" onclick="window.location.href='settings.html'">
+            <i class="ph-fill ph-gear"></i>
+            <span>الإعدادات</span>
+        </div>
+    </nav>
+
+    <script type="module" src="js/app.js?v=2.0.6"></script>
+    <script type="module" src="js/ai-chat.js?v=2.0.6"></script>
+    <script src="js/animations.js?v=2.0.6"></script>
+</body>
+
+</html>
