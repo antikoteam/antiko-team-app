@@ -1,0 +1,268 @@
+            <!-- Section: Support Tickets -->
+            <section id="section-support-tickets" class="dashboard-section hidden">
+                <div class="dashboard-header"
+                    style="display: flex; justify-content: space-between; align-items: center;">
+                    <h1 class="dashboard-title">تذاكر الدعم الفني</h1>
+                    <button class="premium-btn danger" onclick="deleteAllTickets()"
+                        style="font-size: 0.8rem; padding: 5px 15px; background: rgba(255,0,60,0.1); border-color: var(--neon-red); color: var(--neon-red);">
+                        <i class="ph ph-trash-simple"></i> مسح كافة التذاكر
+                    </button>
+                </div>
+                <div id="admin-tickets-container" class="admin-chat-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px; height: 75vh; overflow: hidden;">
+
+                    <!-- Ticket List -->
+                    <div id="admin-ticket-list" class="glass-card"
+                        style="background: rgba(255,255,255,0.03); border-radius: 12px; overflow-y: auto; padding: 10px; border: 1px solid var(--border-light); position: relative;">
+                        <div id="admin-tickets-loading" style="text-align: center; color: #888; margin-top: 40px;">
+                            <i class="ph ph-spinner ph-spin"
+                                style="font-size: 2rem; display: block; margin-bottom: 15px; color: var(--neon-red);"></i>
+                            جاري تحميل التذاكر...
+                            <button onclick="loadAdminTickets()" class="premium-btn secondary"
+                                style="margin-top: 15px; font-size: 0.8rem; padding: 5px 15px;">
+                                <i class="ph ph-arrows-clockwise"></i> إعادة محاولة
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chat View -->
+                    <div id="admin-chat-view" class="glass-card"
+                        style="background: rgba(0,0,0,0.4); border-radius: 12px; display: flex; flex-direction: column; padding: 15px; border: 1px solid var(--border-light);">
+
+                        <!-- Chat Header -->
+                        <div id="active-ticket-info"
+                            style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px;">
+                            <button id="admin-chat-back-btn" class="premium-btn secondary"
+                                style="padding: 6px 12px; border-radius: 10px; display: none;">
+                                <i class="ph ph-arrow-right"></i>
+                            </button>
+                            <h3 id="chat-user-email"
+                                style="margin: 0; font-size: 0.95rem; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                اختر استفساراً للرد</h3>
+                        </div>
+
+                        <!-- Chat Messages -->
+                        <div id="admin-chat-box"
+                            style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 15px;">
+                            <div style="text-align: center; color: #444; margin-top: 80px;">
+                                <i class="ph ph-chat-centered-text"
+                                    style="font-size: 3rem; display: block; margin-bottom: 10px;"></i>
+                                <p>اضغط على أي استفسار لبدء المحادثة</p>
+                            </div>
+                        </div>
+
+                        <!-- Reply Form -->
+                        <form id="admin-reply-form" style="display: flex; gap: 10px;">
+                            <input type="text" id="admin-reply-input" class="form-control" placeholder="اكتب ردك هنا..."
+                                style="border-radius: 20px; font-size: 0.9rem;">
+                            <button type="submit" class="premium-btn"
+                                style="border-radius: 20px; width: 50px; flex-shrink: 0;"><i
+                                    class="ph ph-paper-plane-right"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Home -->
+            <section id="section-home" class="dashboard-section">
+                <div class="dashboard-header" style="flex-wrap: wrap; gap: 10px;">
+                    <h1 class="dashboard-title" style="margin:0;">نظرة عامة</h1>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="loadStats()" class="premium-btn secondary" style="padding: 10px 15px;">
+                            <i class="ph ph-arrows-clockwise"></i> تحديث
+                        </button>
+                        <button id="init-db-btn" class="premium-btn hidden"
+                            style="background: linear-gradient(135deg, #00b359 0%, #00ff88 100%); color: #000; box-shadow: 0 4px 15px rgba(0,255,136,0.3); padding: 10px 15px;">
+                            <i class="ph-fill ph-database"></i> تهيئة داتا بيز
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Admin Quick Navigation Grid -->
+                <div class="sidebar-label"
+                    style="text-align: right; margin-bottom: 10px; font-size: 1rem; color: var(--neon-red); font-weight: 800;">
+                    إختصارات الإدارة الأساسية</div>
+                <div class="admin-nav-grid" style="margin-bottom: 25px;">
+                    <div class="glass-card nav-tile" data-goto="services-management"
+                        style="--tile-color: var(--neon-red);">
+                        <div class="card-edge"></div>
+                        <div class="card-inner">
+                            <i class="ph ph-list-bullets"></i>
+                            <span>إدارة الأقسام</span>
+                        </div>
+                    </div>
+                    <div class="glass-card nav-tile" data-goto="orders" style="--tile-color: #0088cc;">
+                        <div class="card-edge"></div>
+                        <div class="card-inner">
+                            <i class="ph ph-shopping-cart-simple"></i>
+                            <span>الطلبات</span>
+                        </div>
+                    </div>
+                    <div class="glass-card nav-tile" data-goto="team-members" style="--tile-color: #00ff88;">
+                        <div class="card-edge"></div>
+                        <div class="card-inner">
+                            <i class="ph ph-users-three"></i>
+                            <span>الفريق</span>
+                        </div>
+                    </div>
+                    <div class="glass-card nav-tile" data-goto="settings" style="--tile-color: #ffb800;">
+                        <div class="card-edge"></div>
+                        <div class="card-inner">
+                            <i class="ph ph-gear"></i>
+                            <span>الإعدادات</span>
+                        </div>
+                    </div>
+                    <div class="glass-card nav-tile" data-goto="ai-settings" style="--tile-color: #a855f7;">
+                        <div class="card-edge"></div>
+                        <div class="card-inner">
+                            <i class="ph ph-robot"></i>
+                            <span>المساعد الذكي</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-cards">
+                    <div class="glass-card stat-card">
+                        <div class="card-edge"></div>
+                        <div class="card-inner" style="flex-direction:row; padding:10px 15px;">
+                            <div class="stat-icon"><i class="ph-fill ph-flag"></i></div>
+                            <div class="stat-info">
+                                <h4 style="font-size: 0.75rem; margin-bottom: 2px;">إجمالي الدول</h4>
+                                <div class="stat-number" id="stat-countries" style="font-size: 1.2rem;">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card stat-card">
+                        <div class="card-edge"></div>
+                        <div class="card-inner" style="flex-direction:row; padding:10px 15px;">
+                            <div class="stat-icon"><i class="ph-fill ph-list-numbers"></i></div>
+                            <div class="stat-info">
+                                <h4 style="font-size: 0.75rem; margin-bottom: 2px;">إجمالي الخدمات</h4>
+                                <div class="stat-number" id="stat-services" style="font-size: 1.2rem;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Services Management (Categories) -->
+            <section id="section-services-management" class="dashboard-section hidden">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">إدارة أقسام المتجر</h1>
+                    <button class="premium-btn" onclick="openServiceModal()">
+                        <i class="ph ph-plus"></i> إضافة قسم جديد
+                    </button>
+                </div>
+
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>أيقونة</th>
+                                <th>اسم القسم</th>
+                                <th>رابط القسم</th>
+                                <th>الحالة</th>
+                                <th>ترتيب</th>
+                                <th>التحكم</th>
+                            </tr>
+                        </thead>
+                        <tbody id="services-management-tbody">
+                            <tr>
+                                <td colspan="6" class="text-center">جاري التحميل...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section: Dynamic Service Items Management -->
+            <section id="section-dynamic-service-items" class="dashboard-section hidden">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title" id="dynamic-service-title">إدارة العناصر</h1>
+                    <button class="premium-btn" onclick="openItemModal()">
+                        <i class="ph ph-plus"></i> إضافة عنصر جديد
+                    </button>
+                </div>
+
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr id="dynamic-table-head">
+                                <th>أيقونة</th>
+                                <th>اسم</th>
+                                <th>سعر</th>
+                                <th>الحالة</th>
+                                <th>ترتيب</th>
+                                <th>التحكم</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dynamic-items-tbody">
+                            <tr>
+                                <td colspan="6" class="text-center">اختر قسماً من القائمة الجانبية</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section: Orders (Unified) -->
+            <section id="section-orders" class="dashboard-section hidden">
+                <div class="dashboard-header" style="flex-direction: column; align-items: flex-start; gap: 20px;">
+                    <h1 class="dashboard-title">الطلبات الواردة</h1>
+                    <div id="dynamic-order-filters" class="order-filters"
+                        style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%;">
+                        <button class="filter-btn active" data-filter="all">الكل</button>
+                    </div>
+                </div>
+
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>نوع الطلب</th>
+                                <th>الخدمة / المنتج</th>
+                                <th>التفاصيل</th>
+                                <th>رقم الواتساب</th>
+                                <th>التاريخ</th>
+                                <th>التحكم</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-tbody">
+                            <tr>
+                                <td colspan="6" class="text-center">جاري التحميل...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section: Team Members -->
+            <section id="section-team-members" class="dashboard-section hidden">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">إدارة فريق انتيكو</h1>
+                    <button class="premium-btn" onclick="addTeamMember()">
+                        <i class="ph ph-plus"></i> إضافة عضو جديد
+                    </button>
+                </div>
+
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>أيقونة</th>
+                                <th>اسم</th>
+                                <th>المنصب</th>
+                                <th>الحالة</th>
+                                <th>ترتيب</th>
+                                <th>التحكم</th>
+                            </tr>
+                        </thead>
+                        <tbody id="team-tbody">
+                            <tr>
+                                <td colspan="6" class="text-center">جاري التحميل...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>

@@ -579,20 +579,31 @@ if (googleLoginBtn) {
 
         try {
             if (isNative && window.Capacitor.Plugins && window.Capacitor.Plugins.FirebaseAuthentication) {
-                // Mobile Native Google Login
+                // Mobile Native Google Login (via Capacitor plugin)
                 showLoading(true);
-                const result = await window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle({
-                    useCredentialManager: false
-                });
+                try {
+                    const result = await window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle({
+                        useCredentialManager: false
+                    });
 
-                if (result && result.credential) {
-                    const credential = GoogleAuthProvider.credential(result.credential.idToken);
-                    await signInWithCredential(auth, credential);
-                    loginModal.classList.add('hidden');
-                    showToast("تم تسجيل الدخول بنجاح");
+                    if (result && result.credential) {
+                        const credential = GoogleAuthProvider.credential(result.credential.idToken);
+                        await signInWithCredential(auth, credential);
+                        loginModal.classList.add('hidden');
+                        showToast("تم تسجيل الدخول بنجاح");
+                        return; // نجح الدخول، نخرج
+                    }
+                } catch (nativeError) {
+                    console.error("Native login failed, falling back to redirect:", nativeError);
                 }
+            }
+            
+            if (isNative) {
+                // Native platform but native plugin failed/missing → use Redirect safely (stays in-app)
+                showLoading(true);
+                await signInWithRedirect(auth, googleProvider);
             } else {
-                // Web or Electron Flow
+                // Web browser → Popup is fine
                 await signInWithPopup(auth, googleProvider);
                 loginModal.classList.add('hidden');
             }
@@ -617,7 +628,13 @@ if (googleLoginBtn) {
 }
 
 // Capture Redirect Result on Load
-getRedirectResult(auth).catch((error) => {
+getRedirectResult(auth).then((result) => {
+    if (result && result.user) {
+        // الـ user رجع من Google Redirect ناجح
+        if (loginModal) loginModal.classList.add('hidden');
+        if (typeof showToast === 'function') showToast("تم تسجيل الدخول بنجاح ✅");
+    }
+}).catch((error) => {
     console.error("Redirect Error:", error);
 });
 
