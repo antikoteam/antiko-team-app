@@ -2130,3 +2130,8 @@ body {
     visibility: hidden;
     pointer-events: none;
 }
+
+#nav-login-btn {
+    display: none !important;
+}
+
