@@ -552,6 +552,12 @@
                         <span id="auth-submit-text">دخول النظام</span>
                     </button>
                 </form>
+
+                <!-- Toggle Login / Register -->
+                <div style="text-align: center; margin-top: 20px; font-size: 0.88rem; color: rgba(255,255,255,0.35);">
+                    <span id="auth-toggle-msg">ليس لديك حساب؟</span>
+                    <a href="#" id="auth-toggle-btn" style="color: rgba(255,0,60,0.85); font-weight: 700; text-decoration: none; margin-right: 6px; transition: color 0.2s;" onmouseover="this.style.color='#ff003c'" onmouseout="this.style.color='rgba(255,0,60,0.85)'">إنشاء حساب</a>
+                </div>
             </div>
         </div>
     </div>
@@ -585,9 +591,13 @@
             <i class="ph-fill ph-house"></i>
             <span>الرئيسية</span>
         </div>
-        <div class="bottom-nav-item" onclick="window.location.href='ai.html'">
-            <i class="ph-fill ph-sparkle"></i>
-            <span>المساعد</span>
+        <div class="bottom-nav-item" onclick="window.location.href='store.html'">
+            <i class="ph-fill ph-storefront"></i>
+            <span>المتجر</span>
+        </div>
+        <div class="bottom-nav-item" id="bottom-nav-account" onclick="handleBottomNavAccount()">
+            <i class="ph-fill ph-user-circle"></i>
+            <span>حسابي</span>
         </div>
         <div class="bottom-nav-item" onclick="window.location.href='support.html'">
             <i class="ph-fill ph-headset"></i>

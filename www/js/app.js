@@ -51,6 +51,11 @@ const agreeCheckbox = document.getElementById('agree-checkbox');
 let hasAgreed = false;
 
 const openPrivacyModal = () => {
+    // If modal not in current page, redirect to index with login trigger
+    if (!privacyModal) {
+        window.location.href = 'index.html?showLogin=1';
+        return;
+    }
     privacyModal.classList.remove('hidden');
     // Reset agreement
     hasAgreed = false;
@@ -460,24 +465,42 @@ function setupOrderListener(isAdmin) {
 
 onAuthStateChanged(auth, (user) => {
     const modalDashBtn = document.getElementById('modal-dashboard-btn');
+    const bottomNavAccount = document.getElementById('bottom-nav-account');
     if (user) {
         // Logged in
         currentUser = user;
         checkAdminStatus(user);
 
-        navLoginBtn.classList.add('hidden');
-        navAccountBtn.classList.remove('hidden');
-        loginModal.classList.add('hidden');
+        if (navLoginBtn) navLoginBtn.classList.add('hidden');
+        if (navAccountBtn) navAccountBtn.classList.remove('hidden');
+        if (loginModal) loginModal.classList.add('hidden');
+
+        // Update bottom nav account icon to show logged in state
+        if (bottomNavAccount) {
+            bottomNavAccount.querySelector('i').className = 'ph-fill ph-user-circle';
+            bottomNavAccount.style.color = 'var(--neon-red)';
+        }
     } else {
         // Logged out
         currentUser = null;
-        navLoginBtn.classList.remove('hidden');
-        navDashboardBtn.classList.add('hidden');
-        navAccountBtn.classList.add('hidden');
+        if (navLoginBtn) navLoginBtn.classList.remove('hidden');
+        if (navDashboardBtn) navDashboardBtn.classList.add('hidden');
+        if (navAccountBtn) navAccountBtn.classList.add('hidden');
 
         if (modalDashBtn) modalDashBtn.classList.add('hidden');
+
+        // Reset bottom nav account icon
+        if (bottomNavAccount) {
+            bottomNavAccount.querySelector('i').className = 'ph-fill ph-user-circle';
+            bottomNavAccount.style.color = '';
+        }
     }
 });
+
+// Auto-open login if redirected with ?showLogin=1
+if (new URLSearchParams(window.location.search).get('showLogin') === '1') {
+    setTimeout(() => openPrivacyModal(), 800);
+}
 
 // --- UI Modal & Navigation Listeners ---
 
@@ -498,21 +521,34 @@ if (navDashboardBtn) {
 // Account Modal Open
 if (navAccountBtn) {
     navAccountBtn.addEventListener('click', () => {
-        if (currentUser) {
+        if (currentUser && accountEmail) {
             accountEmail.textContent = currentUser.email;
         }
-        accountModal.classList.remove('hidden');
+        if (accountModal) accountModal.classList.remove('hidden');
     });
 }
 
 // Logout Action
 if (modalLogoutBtn) {
     modalLogoutBtn.addEventListener('click', () => {
+        // Mark as signed out to prevent redirect auto-login
+        sessionStorage.setItem('antiko_signed_out', 'true');
         signOut(auth).then(() => {
             accountModal.classList.add('hidden');
+            if (typeof showToast === 'function') showToast("تم تسجيل الخروج بنجاح");
         });
     });
 }
+
+// Handle Bottom Nav Account Button
+window.handleBottomNavAccount = function() {
+    if (currentUser) {
+        if (accountEmail) accountEmail.textContent = currentUser.email;
+        if (accountModal) accountModal.classList.remove('hidden');
+    } else {
+        openPrivacyModal();
+    }
+};
 
 // Dashboard Btn inside Account Modal — redirect to dashboard.html
 const modalDashBtnGlobal = document.getElementById('modal-dashboard-btn');
@@ -628,9 +664,19 @@ if (googleLoginBtn) {
 }
 
 // Capture Redirect Result on Load
+// IMPORTANT FIX: Only process redirect result if user was NOT explicitly signed out
+// This prevents auto re-login after logout on native platforms
 getRedirectResult(auth).then((result) => {
     if (result && result.user) {
-        // الـ user رجع من Google Redirect ناجح
+        // Check if user manually signed out before redirect
+        const wasSignedOut = sessionStorage.getItem('antiko_signed_out');
+        if (wasSignedOut === 'true') {
+            // User signed out manually, ignore redirect result and sign out again
+            sessionStorage.removeItem('antiko_signed_out');
+            signOut(auth).catch(() => {});
+            return;
+        }
+        // Successful redirect login
         if (loginModal) loginModal.classList.add('hidden');
         if (typeof showToast === 'function') showToast("تم تسجيل الدخول بنجاح ✅");
     }
@@ -693,6 +739,7 @@ if (loginForm) {
 
 
 function showError(msg) {
+    if (!errorDiv) return;
     errorDiv.textContent = msg;
     errorDiv.classList.remove('hidden');
 }
@@ -1806,7 +1853,8 @@ if (canvas) {
         lastFrameTime = timestamp;
 
         // PERF: Pause when tab hidden, dashboard open, or user typing
-        if (document.hidden || !dashboardView.classList.contains('hidden') || isUserTyping) {
+        const _dv = document.getElementById('dashboard-view');
+        if (document.hidden || (_dv && !_dv.classList.contains('hidden')) || isUserTyping) {
             animationId = requestAnimationFrame(animate);
             return;
         }
