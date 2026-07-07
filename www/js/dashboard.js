@@ -220,7 +220,7 @@ window.deleteAllTickets = async function () {
         showToast("فشل في مسح التذاكر", "error");
     }
 }
-window.addTeamMember = () => { if (typeof resetTeamForm === 'function') resetTeamForm(); if (window.openModal) window.openModal('team-modal'); else document.getElementById('team-modal').classList.remove('hidden'); };
+
 window.deleteOrder = async (id) => { if (!confirm("هل أنت متأكد من حذف هذا الطلب؟")) return; try { await deleteDoc(doc(db, "orders", id)); showToast("تم حذف الطلب بنجاح. 🗑️"); if (typeof loadOrders === 'function') loadOrders(); } catch (e) { console.error(e); showToast("فشل في حذف الطلب.", "error"); } };
 
 
@@ -1392,14 +1392,29 @@ async function loadTeamMembers() {
 }
 
 function editTeamMember(m) {
-    document.getElementById('team-modal-title').textContent = "تعديل بيانات العضو";
-    document.getElementById('team-id').value = m.id || '';
-    document.getElementById('team-name').value = m.name || '';
-    document.getElementById('team-role').value = m.role || '';
-    document.getElementById('team-bio').value = m.bio || '';
-    document.getElementById('team-image-base64').value = m.imageBase64 || '';
-    document.getElementById('team-sort').value = m.sortOrder || 0;
-    document.getElementById('team-active').checked = m.active !== false;
+    const titleEl = document.getElementById('team-modal-title');
+    if (titleEl) titleEl.textContent = "تعديل بيانات العضو";
+
+    const idEl = document.getElementById('team-id');
+    if (idEl) idEl.value = m.id || '';
+
+    const nameEl = document.getElementById('team-name');
+    if (nameEl) nameEl.value = m.name || '';
+
+    const roleEl = document.getElementById('team-role');
+    if (roleEl) roleEl.value = m.role || '';
+
+    const bioEl = document.getElementById('team-bio');
+    if (bioEl) bioEl.value = m.bio || '';
+
+    const base64El = document.getElementById('team-image-base64');
+    if (base64El) base64El.value = m.imageBase64 || '';
+
+    const sortEl = document.getElementById('team-sort');
+    if (sortEl) sortEl.value = m.sortOrder || 0;
+
+    const activeEl = document.getElementById('team-active');
+    if (activeEl) activeEl.checked = m.active !== false;
 
     const preview = document.getElementById('team-image-preview');
     if (preview) {
@@ -1410,8 +1425,11 @@ function editTeamMember(m) {
         }
     }
 
-    if (window.openModal) window.openModal('team-modal');
-    else document.getElementById('team-modal').classList.remove('hidden');
+    const modal = document.getElementById('team-modal');
+    if (modal) {
+        if (window.openModal) window.openModal('team-modal');
+        else modal.classList.remove('hidden');
+    }
 }
 
 async function deleteTeamMember(id) {
@@ -1429,16 +1447,27 @@ async function deleteTeamMember(id) {
 function resetTeamForm() {
     const form = document.getElementById('team-form');
     if (form) form.reset();
-    document.getElementById('team-id').value = '';
-    document.getElementById('team-image-base64').value = '';
-    document.getElementById('team-image-preview').innerHTML = '';
-    document.getElementById('team-modal-title').textContent = 'إضافة عضو للفريق';
+
+    const idEl = document.getElementById('team-id');
+    if (idEl) idEl.value = '';
+
+    const base64El = document.getElementById('team-image-base64');
+    if (base64El) base64El.value = '';
+
+    const previewEl = document.getElementById('team-image-preview');
+    if (previewEl) previewEl.innerHTML = '';
+
+    const titleEl = document.getElementById('team-modal-title');
+    if (titleEl) titleEl.textContent = 'إضافة عضو للفريق';
 }
 
 function addTeamMember() {
     resetTeamForm();
-    if (window.openModal) window.openModal('team-modal');
-    else document.getElementById('team-modal').classList.remove('hidden');
+    const modal = document.getElementById('team-modal');
+    if (modal) {
+        if (window.openModal) window.openModal('team-modal');
+        else modal.classList.remove('hidden');
+    }
 }
 
 // Handle Team Form Submit
@@ -1450,22 +1479,32 @@ addSafeListener('team-form', 'submit', async (e) => {
         btn.textContent = 'جاري الحفظ...';
     }
 
-    const id = document.getElementById('team-id').value;
+    const idEl = document.getElementById('team-id');
+    const id = idEl ? idEl.value : '';
+
     const fileInput = document.getElementById('team-image-file');
-    let imageBase64 = document.getElementById('team-image-base64').value;
+
+    const base64El = document.getElementById('team-image-base64');
+    let imageBase64 = base64El ? base64El.value : '';
 
     try {
         if (fileInput && fileInput.files && fileInput.files[0]) {
             imageBase64 = await fileToBase64(fileInput.files[0]);
         }
 
+        const nameEl = document.getElementById('team-name');
+        const roleEl = document.getElementById('team-role');
+        const bioEl = document.getElementById('team-bio');
+        const sortEl = document.getElementById('team-sort');
+        const activeEl = document.getElementById('team-active');
+
         const data = {
-            name: document.getElementById('team-name').value,
-            role: document.getElementById('team-role').value,
-            bio: document.getElementById('team-bio').value,
+            name: nameEl ? nameEl.value : '',
+            role: roleEl ? roleEl.value : '',
+            bio: bioEl ? bioEl.value : '',
             imageBase64: imageBase64,
-            sortOrder: Number(document.getElementById('team-sort').value),
-            active: document.getElementById('team-active').checked
+            sortOrder: sortEl ? Number(sortEl.value) : 0,
+            active: activeEl ? activeEl.checked : true
         };
 
         if (id) {

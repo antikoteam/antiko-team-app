@@ -400,9 +400,6 @@
             <button id="nav-dashboard-btn" class="premium-btn hidden nav-btn-small">
                 <i class="ph ph-squares-four"></i> لوحة التحكم
             </button>
-            <button id="nav-account-btn" class="premium-btn secondary hidden nav-btn-small">
-                <i class="ph ph-user"></i> الحساب
-            </button>
         </div>
     </nav>
 
@@ -498,7 +495,7 @@
         <div class="login-card">
 
             <!-- Close Button -->
-            <button class="login-close-btn" onclick="document.getElementById('login-modal').classList.add('hidden')">
+            <button class="login-close-btn" onclick="closeModal('login-modal')">
                 <i class="ph ph-x"></i>
             </button>
 
@@ -567,7 +564,7 @@
     =============================================== -->
     <div id="account-modal" class="modal-overlay hidden" style="z-index: 2000;">
         <div class="modal" style="max-width: 400px; padding: 40px; text-align: center;">
-            <button class="modal-close" onclick="document.getElementById('account-modal').classList.add('hidden')"><i
+            <button class="modal-close" onclick="closeModal('account-modal')"><i
                     class="ph ph-x"></i></button>
 
             <div style="margin-bottom: 20px;">
@@ -591,9 +588,9 @@
             <i class="ph-fill ph-house"></i>
             <span>الرئيسية</span>
         </div>
-        <div class="bottom-nav-item" onclick="window.location.href='store.html'">
-            <i class="ph-fill ph-storefront"></i>
-            <span>المتجر</span>
+        <div class="bottom-nav-item" onclick="window.location.href='ai.html'">
+            <i class="ph-fill ph-sparkle"></i>
+            <span>المساعد</span>
         </div>
         <div class="bottom-nav-item" id="bottom-nav-account" onclick="handleBottomNavAccount()">
             <i class="ph-fill ph-user-circle"></i>

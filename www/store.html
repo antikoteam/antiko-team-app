@@ -55,9 +55,6 @@
             <button id="nav-dashboard-btn" class="premium-btn hidden nav-btn-small">
                 <i class="ph ph-squares-four"></i> لوحة التحكم
             </button>
-            <button id="nav-account-btn" class="premium-btn secondary hidden nav-btn-small">
-                <i class="ph ph-user"></i> الحساب
-            </button>
         </div>
     </nav>
 
@@ -85,8 +82,8 @@
                         <div class="announcement-content"></div>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                        <h2 class="section-title" id="countries-title" style="margin-bottom: 0;">الدول المتاحة</h2>
-                        <button id="back-to-services-btn" class="premium-btn secondary" style="padding: 10px 20px;">
+                        <span id="countries-title" style="display: none;"></span>
+                        <button id="back-to-services-btn" class="premium-btn secondary" style="width: 100%; padding: 12px 20px;">
                             <i class="ph ph-arrow-right"></i> العودة للمتجر
                         </button>
                     </div>
@@ -99,7 +96,7 @@
     <!-- ============ ACCOUNT MODAL ============ -->
     <div id="account-modal" class="modal-overlay hidden" style="z-index: 2000;">
         <div class="modal" style="max-width: 400px; padding: 40px; text-align: center;">
-            <button class="modal-close" onclick="document.getElementById('account-modal').classList.add('hidden')"><i class="ph ph-x"></i></button>
+            <button class="modal-close" onclick="closeModal('account-modal')"><i class="ph ph-x"></i></button>
             <div style="margin-bottom: 20px;">
                 <i class="ph-fill ph-user-circle" style="font-size: 5rem; color: var(--neon-red); filter: drop-shadow(0 0 10px rgba(255,0,60,0.5));"></i>
             </div>
@@ -145,7 +142,7 @@
     <!-- ============ LOGIN MODAL ============ -->
     <div id="login-modal" class="modal-overlay hidden">
         <div class="login-card" style="background: linear-gradient(145deg, #0d0d0d, #111111); border: 1px solid rgba(255,0,60,0.15); border-radius: 24px; max-width: 420px; width: 92%; padding: 0; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.8);">
-            <button class="login-close-btn" onclick="document.getElementById('login-modal').classList.add('hidden')" style="position:absolute;top:16px;left:16px;width:34px;height:34px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:50%;color:rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;z-index:10;">
+            <button class="login-close-btn" onclick="closeModal('login-modal')" style="position:absolute;top:16px;left:16px;width:34px;height:34px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:50%;color:rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;z-index:10;">
                 <i class="ph ph-x"></i>
             </button>
             <div style="background: linear-gradient(135deg, #1a0008 0%, #0d0d0d 60%); padding: 36px 32px 28px; text-align: center; border-bottom: 1px solid rgba(255,0,60,0.1);">
@@ -262,9 +259,9 @@
             <i class="ph-fill ph-house"></i>
             <span>الرئيسية</span>
         </div>
-        <div class="bottom-nav-item active" onclick="window.location.href='store.html'">
-            <i class="ph-fill ph-storefront"></i>
-            <span>المتجر</span>
+        <div class="bottom-nav-item" onclick="window.location.href='ai.html'">
+            <i class="ph-fill ph-sparkle"></i>
+            <span>المساعد</span>
         </div>
         <div class="bottom-nav-item" id="bottom-nav-account" onclick="handleBottomNavAccount()">
             <i class="ph-fill ph-user-circle"></i>

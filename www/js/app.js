@@ -473,12 +473,12 @@ onAuthStateChanged(auth, (user) => {
 
         if (navLoginBtn) navLoginBtn.classList.add('hidden');
         if (navAccountBtn) navAccountBtn.classList.remove('hidden');
-        if (loginModal) loginModal.classList.add('hidden');
+        if (typeof closeModal === 'function') closeModal('login-modal');
+        else if (loginModal) loginModal.classList.add('hidden');
 
         // Update bottom nav account icon to show logged in state
         if (bottomNavAccount) {
             bottomNavAccount.querySelector('i').className = 'ph-fill ph-user-circle';
-            bottomNavAccount.style.color = 'var(--neon-red)';
         }
     } else {
         // Logged out
@@ -492,7 +492,6 @@ onAuthStateChanged(auth, (user) => {
         // Reset bottom nav account icon
         if (bottomNavAccount) {
             bottomNavAccount.querySelector('i').className = 'ph-fill ph-user-circle';
-            bottomNavAccount.style.color = '';
         }
     }
 });
@@ -542,6 +541,20 @@ if (modalLogoutBtn) {
 
 // Handle Bottom Nav Account Button
 window.handleBottomNavAccount = function() {
+    const bottomNavAccount = document.getElementById('bottom-nav-account');
+    if (bottomNavAccount) {
+        const navItems = document.querySelectorAll('.mobile-bottom-nav .bottom-nav-item');
+        let activeIndex = -1;
+        navItems.forEach((item, idx) => {
+            if (item.classList.contains('active') && item !== bottomNavAccount) {
+                activeIndex = idx;
+            }
+        });
+        window._prevActiveBottomNavIndex = activeIndex;
+
+        navItems.forEach(item => item.classList.remove('active'));
+        bottomNavAccount.classList.add('active');
+    }
     if (currentUser) {
         if (accountEmail) accountEmail.textContent = currentUser.email;
         if (accountModal) accountModal.classList.remove('hidden');

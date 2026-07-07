@@ -9,6 +9,25 @@ function openModal(id) {
 function closeModal(id) {
     const el = document.getElementById(id);
     if (el) el.classList.add("hidden");
+    
+    if (id === 'account-modal' || id === 'login-modal' || id === 'privacy-policy-modal') {
+        const bottomNavAccount = document.getElementById('bottom-nav-account');
+        if (bottomNavAccount) {
+            bottomNavAccount.classList.remove('active');
+            const navItems = document.querySelectorAll('.mobile-bottom-nav .bottom-nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            const prevIndex = window._prevActiveBottomNavIndex;
+            if (prevIndex !== undefined && prevIndex !== -1) {
+                if (navItems[prevIndex]) navItems[prevIndex].classList.add('active');
+            } else {
+                const path = window.location.pathname;
+                if (!path.includes('store.html')) {
+                    if (navItems[0]) navItems[0].classList.add('active');
+                }
+            }
+        }
+    }
 }
 
 window.closeModal = closeModal;
