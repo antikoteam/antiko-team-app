@@ -1,4 +1,4 @@
-import { db, auth, googleProvider, GoogleAuthProvider, signInWithCredential, signInWithPopup, signInWithRedirect, getRedirectResult, collection, getDocs, getDoc, doc, addDoc, query, where, orderBy, onSnapshot, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "./firebase-config.js";
+import { db, auth, googleProvider, GoogleAuthProvider, signInWithCredential, signInWithPopup, getRedirectResult, collection, getDocs, getDoc, doc, addDoc, query, where, orderBy, onSnapshot, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "./firebase-config.js";
 
 // --- GLOBAL ERROR HANDLER ---
 window.onerror = function (msg, url, line, col, error) {
@@ -529,13 +529,26 @@ if (navAccountBtn) {
 
 // Logout Action
 if (modalLogoutBtn) {
-    modalLogoutBtn.addEventListener('click', () => {
+    modalLogoutBtn.addEventListener('click', async () => {
         // Mark as signed out to prevent redirect auto-login
         sessionStorage.setItem('antiko_signed_out', 'true');
-        signOut(auth).then(() => {
+        try {
+            // Sign out from native Capacitor Firebase plugin (clears native Google session)
+            if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+                if (window.Capacitor.Plugins && window.Capacitor.Plugins.FirebaseAuthentication) {
+                    await window.Capacitor.Plugins.FirebaseAuthentication.signOut();
+                }
+            }
+            // Sign out from web Firebase SDK
+            await signOut(auth);
             accountModal.classList.add('hidden');
             if (typeof showToast === 'function') showToast("تم تسجيل الخروج بنجاح");
-        });
+        } catch (e) {
+            console.error('Logout error:', e);
+            // Force web SDK sign out even if native fails
+            signOut(auth).catch(() => {});
+            accountModal.classList.add('hidden');
+        }
     });
 }
 
@@ -608,62 +621,60 @@ if (googleLoginBtn) {
         if (googleLoginBtn.disabled) return; // Prevent double clicks
 
         const originalText = googleLoginBtn.innerHTML;
-        googleLoginBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> جاري التحقق...';
+        googleLoginBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> جاري تسجيل الدخول...';
         googleLoginBtn.disabled = true;
-
-        // Show a simple processing overlay if it exists
-        const showLoading = (show) => {
-            const loader = document.getElementById('loader');
-            if (loader) {
-                if (show) {
-                    loader.classList.remove('hidden');
-                    loader.querySelector('p').textContent = 'جاري تسجيل الدخول...';
-                } else {
-                    loader.classList.add('hidden');
-                }
-            }
-        };
 
         const isNative = window.Capacitor && window.Capacitor.isNativePlatform();
 
         try {
             if (isNative && window.Capacitor.Plugins && window.Capacitor.Plugins.FirebaseAuthentication) {
-                // Mobile Native Google Login (via Capacitor plugin)
-                showLoading(true);
-                try {
-                    const result = await window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle({
-                        useCredentialManager: false
-                    });
+                // Mobile Native Google Login (via @capacitor-firebase/authentication)
+                // skipNativeAuth is TRUE: plugin only gets the Google credential (idToken)
+                // We then use signInWithCredential to sign in the WEB Firebase SDK
+                // This ensures onAuthStateChanged fires and the session persists properly
+                const result = await window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle({
+                    skipNativeAuth: true,
+                    useCredentialManager: false
+                });
 
-                    if (result && result.credential) {
-                        const credential = GoogleAuthProvider.credential(result.credential.idToken);
-                        await signInWithCredential(auth, credential);
-                        loginModal.classList.add('hidden');
-                        showToast("تم تسجيل الدخول بنجاح");
-                        return; // نجح الدخول، نخرج
-                    }
-                } catch (nativeError) {
-                    console.error("Native login failed, falling back to redirect:", nativeError);
+                if (result && result.credential && result.credential.idToken) {
+                    // Use the idToken to sign in the WEB Firebase SDK
+                    const credential = GoogleAuthProvider.credential(result.credential.idToken);
+                    await signInWithCredential(auth, credential);
+                    // onAuthStateChanged will handle UI updates
+                    loginModal.classList.add('hidden');
+                    showToast("تم تسجيل الدخول بنجاح");
+                } else {
+                    throw new Error('NO_CREDENTIAL');
                 }
-            }
-            
-            if (isNative) {
-                // Native platform but native plugin failed/missing → use Redirect safely (stays in-app)
-                showLoading(true);
-                await signInWithRedirect(auth, googleProvider);
             } else {
                 // Web browser → Popup is fine
                 await signInWithPopup(auth, googleProvider);
                 loginModal.classList.add('hidden');
+                showToast("تم تسجيل الدخول بنجاح");
             }
         } catch (error) {
             console.error("Google login error:", error);
 
-            // Friendly error messages
-            let errorMsg = "حدث خطأ أثناء تسجيل الدخول";
-            if (error.code === 'auth/popup-closed-by-user') return; // User closed it, ignore
-            if (error.message && error.message.includes('NOT_INITIALIZED')) {
+            // Don't show error for user-cancelled actions
+            const errorStr = String(error.message || error.code || error || '').toLowerCase();
+            if (error.code === 'auth/popup-closed-by-user' ||
+                errorStr.includes('cancel') ||
+                errorStr.includes('user_cancel') ||
+                errorStr.includes('sign_in_cancelled') ||
+                errorStr.includes('popup-closed') ||
+                errorStr.includes('12501') ||
+                errorStr.includes('closed-by-user')) {
+                // User cancelled, silently ignore
+                return;
+            }
+
+            // Show friendly error messages
+            let errorMsg = "حدث خطأ أثناء تسجيل الدخول بجوجل";
+            if (errorStr.includes('not_initialized') || errorStr.includes('not initialized')) {
                 errorMsg = "مشكلة في إعدادات النظام. يرجى مراجعة المدير.";
+            } else if (errorStr.includes('network') || errorStr.includes('timeout')) {
+                errorMsg = "خطأ في الاتصال. يرجى التحقق من الإنترنت.";
             }
 
             showError(errorMsg);
@@ -671,25 +682,20 @@ if (googleLoginBtn) {
         } finally {
             googleLoginBtn.innerHTML = originalText;
             googleLoginBtn.disabled = false;
-            showLoading(false);
         }
     };
 }
 
-// Capture Redirect Result on Load
-// IMPORTANT FIX: Only process redirect result if user was NOT explicitly signed out
-// This prevents auto re-login after logout on native platforms
+// Capture Redirect Result on Load (for web browser fallback only)
 getRedirectResult(auth).then((result) => {
     if (result && result.user) {
         // Check if user manually signed out before redirect
         const wasSignedOut = sessionStorage.getItem('antiko_signed_out');
         if (wasSignedOut === 'true') {
-            // User signed out manually, ignore redirect result and sign out again
             sessionStorage.removeItem('antiko_signed_out');
             signOut(auth).catch(() => {});
             return;
         }
-        // Successful redirect login
         if (loginModal) loginModal.classList.add('hidden');
         if (typeof showToast === 'function') showToast("تم تسجيل الدخول بنجاح ✅");
     }
@@ -714,7 +720,7 @@ if (loginForm) {
         }
 
         const originalBtnText = loginBtn.innerHTML;
-        loginBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> جاري التحقق...';
+        loginBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> جاري تسجيل الدخول...';
         loginBtn.disabled = true;
 
         try {
