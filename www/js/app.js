@@ -144,6 +144,7 @@ function checkAdminStatus(user) {
     if (!user) return;
     const navDashboardBtn = document.getElementById('nav-dashboard-btn');
     const modalDashBtn = document.getElementById('modal-dashboard-btn');
+    const homeDashboardCard = document.getElementById('open-dashboard');
     const userEmailLower = (user.email || "").toLowerCase();
     const isAdmin = adminEmails.includes(userEmailLower);
 
@@ -152,10 +153,12 @@ function checkAdminStatus(user) {
     if (isAdmin) {
         if (navDashboardBtn) navDashboardBtn.classList.remove('hidden');
         if (modalDashBtn) modalDashBtn.classList.remove('hidden');
+        if (homeDashboardCard) homeDashboardCard.classList.remove('hidden');
         setupOrderListener(true);
     } else {
         if (navDashboardBtn) navDashboardBtn.classList.add('hidden');
         if (modalDashBtn) modalDashBtn.classList.add('hidden');
+        if (homeDashboardCard) homeDashboardCard.classList.add('hidden');
     }
 }
 
@@ -488,6 +491,9 @@ onAuthStateChanged(auth, (user) => {
         if (navAccountBtn) navAccountBtn.classList.add('hidden');
 
         if (modalDashBtn) modalDashBtn.classList.add('hidden');
+
+        const homeDashboardCard = document.getElementById('open-dashboard');
+        if (homeDashboardCard) homeDashboardCard.classList.add('hidden');
 
         // Reset bottom nav account icon
         if (bottomNavAccount) {
