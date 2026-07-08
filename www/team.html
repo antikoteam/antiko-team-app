@@ -92,6 +92,28 @@
         </main>
     </div>
 
+    <!-- ==============================================
+         ADMIN MODAL (ACCOUNT)
+    =============================================== -->
+    <div id="account-modal" class="modal-overlay hidden" style="z-index: 2000;">
+        <div class="modal" style="max-width: 400px; padding: 40px; text-align: center;">
+            <button class="modal-close" onclick="closeModal('account-modal')"><i class="ph ph-x"></i></button>
+
+            <div style="margin-bottom: 20px;">
+                <i class="ph-fill ph-user-circle" style="font-size: 5rem; color: var(--neon-red); filter: drop-shadow(0 0 10px rgba(255,0,60,0.5));"></i>
+            </div>
+            <h2 style="font-size: 1.5rem; color: #fff; margin-bottom: 5px;">حسابي</h2>
+            <p id="account-email" style="color: var(--text-secondary); margin-bottom: 30px; font-size: 1.1rem; direction: ltr;">-</p>
+
+            <button id="modal-dashboard-btn" class="premium-btn w-100 hidden" style="margin-bottom: 20px;">
+                <i class="ph ph-squares-four"></i> لوحة التحكم
+            </button>
+            <button id="modal-logout-btn" class="premium-btn w-100" style="background: rgba(255,0,60,0.1); border-color: var(--neon-red); color: var(--neon-red);">
+                <i class="ph ph-sign-out"></i> تسجيل الخروج
+            </button>
+        </div>
+    </div>
+
     <!-- Mobile Bottom Navigation -->
     <nav class="mobile-bottom-nav">
         <div class="bottom-nav-item" onclick="window.location.href='index.html'">
@@ -101,6 +123,10 @@
         <div class="bottom-nav-item" onclick="window.location.href='ai.html'">
             <i class="ph-fill ph-sparkle"></i>
             <span>المساعد</span>
+        </div>
+        <div class="bottom-nav-item" id="bottom-nav-account" onclick="handleBottomNavAccount()">
+            <i class="ph-fill ph-user-circle"></i>
+            <span>حسابي</span>
         </div>
         <div class="bottom-nav-item" onclick="window.location.href='support.html'">
             <i class="ph-fill ph-headset"></i>

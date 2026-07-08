@@ -1859,7 +1859,8 @@ a {
         justify-content: center;
     }
 
-    .menu-card {
+    #main-menu .menu-card,
+    #store-sections-grid .menu-card {
         flex: 1 1 45% !important;
         width: 45% !important;
         min-width: 150px;

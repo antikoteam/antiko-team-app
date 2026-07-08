@@ -22,8 +22,14 @@ function closeModal(id) {
                 if (navItems[prevIndex]) navItems[prevIndex].classList.add('active');
             } else {
                 const path = window.location.pathname;
-                if (!path.includes('store.html')) {
+                if (path.includes('index.html') || path.endsWith('/')) {
                     if (navItems[0]) navItems[0].classList.add('active');
+                } else if (path.includes('ai.html')) {
+                    if (navItems[1]) navItems[1].classList.add('active');
+                } else if (path.includes('support.html')) {
+                    if (navItems[3]) navItems[3].classList.add('active');
+                } else if (path.includes('settings.html')) {
+                    if (navItems[4]) navItems[4].classList.add('active');
                 }
             }
         }
