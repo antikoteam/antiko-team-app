@@ -971,7 +971,7 @@ const supportForm = document.getElementById('support-form');
 const msgInput = document.getElementById('support-msg-input');
 let unsubSupportChat = null;
 
-function loadChatMessages(currentUser) {
+window.loadChatMessages = function loadChatMessages(currentUser) {
     const chatBox = document.getElementById('support-chat-box');
     if (!chatBox || !currentUser) return;
 
@@ -982,6 +982,8 @@ function loadChatMessages(currentUser) {
         unsubSupportChat();
         unsubSupportChat = null;
     }
+
+    let lastMessageCount = -1;
 
     unsubSupportChat = onSnapshot(q, (snapshot) => {
         chatBox.innerHTML = '<div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px; border-bottom-right-radius: 0; align-self: flex-start; max-width: 85%; font-size: 0.9rem; color: #ddd;">أهلاً بك في دعم أنتيكو تيم. كيف يمكننا مساعدتك اليوم؟</div>';
@@ -1015,8 +1017,128 @@ function loadChatMessages(currentUser) {
             chatBox.appendChild(msgDiv);
         });
         chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Trigger push notification if a new message from admin is received
+        if (lastMessageCount !== -1 && msgs.length > lastMessageCount) {
+            const newestMsg = msgs[msgs.length - 1];
+            if (newestMsg && newestMsg.senderId === 'admin') {
+                if (Notification.permission === 'granted') {
+                    new Notification("أنتيكو تيم - رد الدعم الفني", {
+                        body: newestMsg.text,
+                        icon: 'assets/icon.png'
+                    });
+                }
+            }
+        }
+        lastMessageCount = msgs.length;
     });
+};
+
+// Custom Premium Dialog for Notification Permission
+function showCustomNotificationDialog() {
+    // Check if dialog already exists
+    if (document.getElementById('custom-notification-dialog')) return;
+
+    const dialog = document.createElement('div');
+    dialog.id = 'custom-notification-dialog';
+    dialog.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+        display: flex; align-items: center; justify-content: center; z-index: 99999;
+        animation: fadeIn 0.3s forwards; direction: rtl; font-family: 'Alexandria', sans-serif;
+    `;
+
+    dialog.innerHTML = `
+        <div style="background: linear-gradient(145deg, #0f0f15, #07070a); border: 1px solid rgba(255, 0, 60, 0.2); border-radius: 24px; padding: 35px 30px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.9); animation: modalScaleUp 0.3s forwards;">
+            <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #ff003c, #cc0030); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 0 20px rgba(255, 0, 60, 0.4);">
+                <i class="ph-fill ph-bell" style="font-size: 2.2rem; color: #fff;"></i>
+            </div>
+            <h3 style="color: #fff; font-size: 1.3rem; margin-bottom: 12px; font-weight: 800;">تفعيل الإشعارات التنبيهية</h3>
+            <p style="color: rgba(255,255,255,0.6); font-size: 0.9rem; line-height: 1.6; margin-bottom: 25px;">يرجى السماح بالإشعارات لتلقي تنبيهات فورية عند وصول ردود الدعم الفني أو تحديثات الطلبات الهامة.</p>
+            <div style="display: flex; gap: 12px;">
+                <button id="noti-cancel-btn" class="premium-btn secondary" style="flex: 1; padding: 12px; font-size: 0.95rem; border-color: rgba(255,255,255,0.1); color: #bbb;">لاحقاً</button>
+                <button id="noti-accept-btn" class="premium-btn" style="flex: 2; padding: 12px; font-size: 0.95rem;">تفعيل الآن</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(dialog);
+
+    // Styles for animations if not exists
+    if (!document.getElementById('noti-anim-styles')) {
+        const style = document.createElement('style');
+        style.id = 'noti-anim-styles';
+        style.innerHTML = `
+            @keyframes modalScaleUp { to { transform: scale(1); } }
+        `;
+        document.head.appendChild(style);
+    }
+
+    document.getElementById('noti-cancel-btn').onclick = () => {
+        localStorage.setItem('notificationPromptShown', 'true');
+        dialog.remove();
+    };
+
+    document.getElementById('noti-accept-btn').onclick = () => {
+        localStorage.setItem('notificationPromptShown', 'true');
+        dialog.remove();
+        if ('Notification' in window) {
+            Notification.requestPermission().then(permission => {
+                console.log("Notification permission state:", permission);
+                if (permission === 'granted') {
+                    showToast("تم تفعيل الإشعارات بنجاح! 🎉");
+                }
+            });
+        }
+    };
 }
+
+// Request Notification Permission on load once
+if ('Notification' in window && Notification.permission === 'default') {
+    if (!localStorage.getItem('notificationPromptShown')) {
+        setTimeout(showCustomNotificationDialog, 3000);
+    }
+}
+
+// Listen to trigger button inside Settings
+document.addEventListener('DOMContentLoaded', () => {
+    const triggerNotiBtn = document.getElementById('trigger-notifications-btn');
+    if (triggerNotiBtn) {
+        triggerNotiBtn.onclick = () => {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        showToast("تم تفعيل الإشعارات بنجاح! 🎉");
+                    } else if (permission === 'denied') {
+                        alert("تم رفض إذن الإشعارات سابقاً. يرجى تفعيلها يدوياً من إعدادات المتصفح/الهاتف.");
+                    } else {
+                        showToast("لم يتم منح الإذن بعد.", "error");
+                    }
+                });
+            } else {
+                alert("جهازك لا يدعم الإشعارات.");
+            }
+        };
+    }
+});
+
+// Fallback for immediate binding just in case DOMContentLoaded already fired
+setTimeout(() => {
+    const triggerNotiBtn = document.getElementById('trigger-notifications-btn');
+    if (triggerNotiBtn && !triggerNotiBtn.onclick) {
+        triggerNotiBtn.onclick = () => {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        showToast("تم تفعيل الإشعارات بنجاح! 🎉");
+                    } else if (permission === 'denied') {
+                        alert("تم رفض إذن الإشعارات سابقاً. يرجى تفعيلها يدوياً من إعدادات المتصفح/الهاتف.");
+                    }
+                });
+            }
+        };
+    }
+}, 1000);
 
 if (supportForm) {
     supportForm.addEventListener('submit', async (e) => {

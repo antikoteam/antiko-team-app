@@ -158,9 +158,15 @@ window.loadAdminTickets = async function () {
                 const data = doc.data();
                 if (!groups[data.userId]) {
                     groups[data.userId] = { userId: data.userId, email: data.userEmail || "عميل", lastMsg: data.text, time: data.timestamp };
-                } else if ((data.timestamp || 0) > (groups[data.userId].time || 0)) {
-                    groups[data.userId].lastMsg = data.text;
-                    groups[data.userId].time = data.timestamp;
+                } else {
+                    // Always prefer a real email over fallback 'عميل'
+                    if (data.userEmail && (groups[data.userId].email === "عميل" || !groups[data.userId].email)) {
+                        groups[data.userId].email = data.userEmail;
+                    }
+                    if ((data.timestamp || 0) > (groups[data.userId].time || 0)) {
+                        groups[data.userId].lastMsg = data.text;
+                        groups[data.userId].time = data.timestamp;
+                    }
                 }
             });
             const list = Object.values(groups).sort((a, b) => (b.time || 0) - (a.time || 0));
@@ -257,9 +263,14 @@ addSafeListener('admin-reply-form', 'submit', async (e) => {
     const text = input.value.trim();
     if (!text) return;
 
+    // Get the user email from the chat header to preserve it in the ticket
+    const chatEmailEl = document.getElementById('chat-user-email');
+    const chatUserEmail = chatEmailEl ? chatEmailEl.textContent : '';
+
     try {
         await addDoc(collection(db, 'support_tickets'), {
             userId: activeChatUserId,
+            userEmail: chatUserEmail,
             senderId: 'admin',
             text: text,
             timestamp: new Date().getTime(),
@@ -324,9 +335,12 @@ if (sidebarContainer) {
         const sectionId = item.getAttribute('data-section');
         if (sectionId) navigateToSection(sectionId);
 
-        // Close sidebar on mobile after clicking
+        // Close sidebar on mobile after clicking (only if it is open)
         if (window.innerWidth < 992) {
-            if (typeof window.toggleSidebar === 'function') window.toggleSidebar();
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar && sidebar.classList.contains('open')) {
+                if (typeof window.toggleSidebar === 'function') window.toggleSidebar();
+            }
         }
     });
 }
@@ -2084,6 +2098,11 @@ window.handleInlineEdit = async function (el, collectionName, docId, field) {
 };
 
 
+let isInitialOrdersLoad = true;
+let isInitialTicketsLoad = true;
+let ordersUnsubGlobal = null;
+let ticketsUnsubGlobal = null;
+
 async function initDashboard() {
     console.log("Antiko: Initializing Dashboard Home...");
     const allSections = document.querySelectorAll('.dashboard-section');
@@ -2095,6 +2114,11 @@ async function initDashboard() {
         console.log("Antiko: Section Home is now visible.");
     }
 
+    // Request Notification Permission inside Dashboard
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+
     // Super Admin Check
     const initBtn = document.getElementById('init-db-btn');
     if (initBtn && auth.currentUser) {
@@ -2104,6 +2128,50 @@ async function initDashboard() {
         } else {
             initBtn.classList.add('hidden');
         }
+    }
+
+    // Listen to new orders and tickets for notifications
+    if (Notification.permission === 'granted') {
+        // 1. Listen for new orders
+        if (ordersUnsubGlobal) ordersUnsubGlobal();
+        isInitialOrdersLoad = true;
+        ordersUnsubGlobal = onSnapshot(collection(db, "orders"), (snap) => {
+            if (isInitialOrdersLoad) {
+                isInitialOrdersLoad = false;
+                return;
+            }
+            snap.docChanges().forEach((change) => {
+                if (change.type === "added") {
+                    const orderData = change.doc.data();
+                    new Notification("طلب جديد وارد! 🔔", {
+                        body: `${orderData.serviceName || orderData.gameName || 'طلب جديد'} - ${orderData.userWhatsApp || ''}`,
+                        icon: 'assets/icon.png'
+                    });
+                }
+            });
+        });
+
+        // 2. Listen for new client support messages
+        if (ticketsUnsubGlobal) ticketsUnsubGlobal();
+        isInitialTicketsLoad = true;
+        ticketsUnsubGlobal = onSnapshot(collection(db, "support_tickets"), (snap) => {
+            if (isInitialTicketsLoad) {
+                isInitialTicketsLoad = false;
+                return;
+            }
+            snap.docChanges().forEach((change) => {
+                if (change.type === "added") {
+                    const ticketData = change.doc.data();
+                    // Notify only if it's sent by a user (not admin)
+                    if (ticketData.senderId !== 'admin') {
+                        new Notification("رسالة دعم جديدة ✉️", {
+                            body: `${ticketData.userEmail || 'عميل'}: ${ticketData.text}`,
+                            icon: 'assets/icon.png'
+                        });
+                    }
+                }
+            });
+        });
     }
 
     try {

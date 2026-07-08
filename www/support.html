@@ -44,6 +44,254 @@
             margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
+        /* =============================================
+           PREMIUM LOGIN MODAL STYLES
+        ============================================= */
+        #login-modal.modal-overlay {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(0, 0, 0, 0.75);
+        }
+
+        .login-card {
+            background: linear-gradient(145deg, #0d0d0d, #111111) !important;
+            border: 1px solid rgba(255, 0, 60, 0.15);
+            border-radius: 24px !important;
+            max-width: 420px;
+            width: 92%;
+            padding: 0 !important;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 0, 60, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            animation: loginSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            position: relative;
+        }
+
+        @keyframes loginSlideUp {
+            from { opacity: 0; transform: translateY(40px) scale(0.94); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .login-card-header {
+            background: linear-gradient(135deg, #1a0008 0%, #0d0d0d 60%, #0a0010 100%);
+            padding: 36px 32px 28px;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 0, 60, 0.1);
+            overflow: hidden;
+        }
+
+        .login-card-header::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(255, 0, 60, 0.18) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .login-logo-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #ff003c, #cc0030);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: 0 8px 24px rgba(255, 0, 60, 0.35), 0 0 0 1px rgba(255, 0, 60, 0.2);
+            font-size: 1.8rem;
+        }
+
+        .login-card-header h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0 0 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .login-card-header p {
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.88rem;
+            margin: 0;
+        }
+
+        .login-card-body { padding: 28px 32px 32px; }
+
+        /* Google Button */
+        .google-login-btn-pro {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 13px 20px;
+            background: #fff;
+            color: #1f1f1f;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.2px;
+        }
+
+        .google-login-btn-pro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .google-login-btn-pro:active {
+            transform: translateY(0);
+        }
+
+        /* Divider */
+        .login-divider {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 22px 0 20px;
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .login-divider::before,
+        .login-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+
+        .login-input-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .login-input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .login-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-input-wrap i {
+            position: absolute;
+            right: 14px;
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 1.05rem;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+
+        .login-input-pro {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            padding: 13px 44px 13px 16px;
+            outline: none;
+            transition: all 0.25s ease;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .login-input-pro::placeholder { color: rgba(255, 255, 255, 0.2); }
+
+        .login-input-pro:focus {
+            border-color: rgba(255, 0, 60, 0.5);
+            background: rgba(255, 0, 60, 0.04);
+            box-shadow: 0 0 0 3px rgba(255, 0, 60, 0.08);
+        }
+
+        .login-input-pro:focus+i,
+        .login-input-wrap:focus-within i {
+            color: rgba(255, 0, 60, 0.6);
+        }
+
+        .login-error-box {
+            background: rgba(255, 0, 60, 0.08);
+            border: 1px solid rgba(255, 0, 60, 0.25);
+            border-radius: 10px;
+            color: #ff5070;
+            font-size: 0.85rem;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .login-submit-pro {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #ff003c 0%, #c8002e 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 6px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 20px rgba(255, 0, 60, 0.3);
+            letter-spacing: 0.3px;
+        }
+
+        .login-submit-pro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(255, 0, 60, 0.45);
+        }
+
+        .login-submit-pro:active { transform: translateY(0); }
+
+        .login-close-btn {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 34px;
+            height: 34px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .login-close-btn:hover {
+            background: rgba(255, 0, 60, 0.15);
+            border-color: rgba(255, 0, 60, 0.3);
+            color: #fff;
+        }
     </style>
     <script type="module" src="js/flags.js"></script>
     <script src="js/main-init.js"></script>
@@ -126,23 +374,76 @@
         </div>
     </div>
 
-    <!-- Login Modal -->
+    <!-- Login Modal — PREMIUM REDESIGN (same as index.html, without Google) -->
     <div id="login-modal" class="modal-overlay hidden">
-        <div class="modal" style="max-width: 400px; padding: 40px;">
-            <button class="modal-close" onclick="closeModal('login-modal')"><i class="ph ph-x"></i></button>
-            <div class="text-center mb-4">
-                <h2 id="auth-modal-title" style="font-size: 1.5rem; color: #fff;">تسجيل الدخول</h2>
+        <div class="login-card">
+
+            <!-- Close Button -->
+            <button class="login-close-btn" onclick="closeModal('login-modal')">
+                <i class="ph ph-x"></i>
+            </button>
+
+            <!-- Header -->
+            <div class="login-card-header">
+                <div class="login-logo-icon">
+                    <i class="ph-fill ph-lightning"></i>
+                </div>
+                <h2 id="auth-modal-title">تسجيل الدخول</h2>
+                <p id="auth-modal-subtitle">أدخل بياناتك للوصول إلى حسابك</p>
             </div>
-            <form id="login-form">
-                <div id="login-error" class="hidden" style="color: var(--neon-red); margin-bottom: 15px; text-align: center; background: rgba(255,0,0,0.1); padding: 10px; border-radius: 8px;"></div>
-                <div class="form-group">
-                    <input type="email" id="admin-email" class="form-control" required placeholder="البريد الإلكتروني">
+
+            <!-- Body -->
+            <div class="login-card-body">
+
+                <!-- Google Sign-In -->
+                <button id="google-login-btn" class="google-login-btn-pro">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20"
+                        alt="Google">
+                    <span>متابعة باستخدام جوجل</span>
+                </button>
+
+                <!-- Divider -->
+                <div class="login-divider">
+                    <span id="auth-divider-text">أو بالبريد الإلكتروني</span>
                 </div>
-                <div class="form-group mt-2">
-                    <input type="password" id="admin-password" class="form-control" required placeholder="كلمة المرور">
+
+                <!-- Form -->
+                <form id="login-form" autocomplete="on">
+                    <div id="login-error" class="login-error-box hidden"></div>
+
+                    <div class="login-input-group">
+                        <label for="admin-email">البريد الإلكتروني</label>
+                        <div class="login-input-wrap">
+                            <input type="email" id="admin-email" class="login-input-pro" required dir="ltr"
+                                placeholder="example@mail.com" autocomplete="email">
+                            <i class="ph ph-envelope"></i>
+                        </div>
+                    </div>
+
+                    <div class="login-input-group">
+                        <label for="admin-password">كلمة المرور</label>
+                        <div class="login-input-wrap">
+                            <input type="password" id="admin-password" class="login-input-pro" required dir="ltr"
+                                placeholder="••••••••" autocomplete="current-password">
+                            <i class="ph ph-lock"></i>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="login-submit-pro" id="login-submit-btn">
+                        <i class="ph ph-sign-in"></i>
+                        <span id="auth-submit-text">دخول النظام</span>
+                    </button>
+                </form>
+
+                <!-- Toggle Login / Register -->
+                <div style="text-align: center; margin-top: 20px; font-size: 0.88rem; color: rgba(255,255,255,0.35);">
+                    <span id="auth-toggle-msg">ليس لديك حساب؟</span>
+                    <a href="#" id="auth-toggle-btn"
+                        style="color: rgba(255,0,60,0.85); font-weight: 700; text-decoration: none; margin-right: 6px; transition: color 0.2s;"
+                        onmouseover="this.style.color='#ff003c'"
+                        onmouseout="this.style.color='rgba(255,0,60,0.85)'">إنشاء حساب</a>
                 </div>
-                <button type="submit" class="premium-btn w-100 mt-4" id="login-submit-btn">دخول</button>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -197,8 +498,32 @@
     <script type="module">
         import { auth, onAuthStateChanged } from './js/firebase-config.js';
         onAuthStateChanged(auth, (user) => {
+            const chatBox = document.getElementById('support-chat-box');
+            const msgInput = document.getElementById('support-msg-input');
+            const submitBtn = document.getElementById('support-submit-btn');
+
             if (user && typeof window.loadChatMessages === 'function') {
+                // User logged in - enable chat
+                if (msgInput) {
+                    msgInput.disabled = false;
+                    msgInput.placeholder = 'اكتب رسالتك للمشرف...';
+                }
+                if (submitBtn) submitBtn.disabled = false;
                 window.loadChatMessages(user);
+            } else {
+                // Not logged in - show login message and disable input
+                if (chatBox) {
+                    chatBox.innerHTML = `
+                        <div style="background: rgba(255,255,255,0.05); padding: 15px 20px; border-radius: 15px; border-bottom-right-radius: 0; align-self: flex-start; max-width: 85%; font-size: 0.95rem; color: #ddd; display: flex; align-items: center; gap: 10px;">
+                            <i class="ph ph-lock" style="color: var(--neon-red); font-size: 1.3rem;"></i>
+                            يرجى تسجيل الدخول أولاً لتتمكن من التحدث إلى الدعم الفني.
+                        </div>`;
+                }
+                if (msgInput) {
+                    msgInput.disabled = true;
+                    msgInput.placeholder = 'يرجى تسجيل الدخول أولاً...';
+                }
+                if (submitBtn) submitBtn.disabled = true;
             }
         });
     </script>
