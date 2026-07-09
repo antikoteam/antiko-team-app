@@ -1894,16 +1894,17 @@ if (canvas) {
 
     const particles = [];
     const isMobile = isMobileDevice;
-    // PERF: Much fewer particles on mobile to save CPU/RAM
-    const particleCount = isMobile ? 12 : Math.min(Math.floor((width * height) / 15000), 60);
-    const connectionDistance = isMobile ? 100 : 150;
-    const mouseRadius = isMobile ? 100 : 150;
+    // PERF: Capped particle counts (max 24 on desktop, 10 on mobile) to reduce CPU load under software rendering.
+    // This reduces O(N^2) calculations from 1770 iterations down to 276 checks (over 84% reduction).
+    const particleCount = isMobile ? 10 : Math.min(Math.floor((width * height) / 25000), 24);
+    const connectionDistance = isMobile ? 80 : 110;
+    const mouseRadius = isMobile ? 90 : 120;
 
     const mouse = { x: null, y: null };
     let lastInteractionTime = Date.now();
     let isUserTyping = false; // PERF: Pause animation during typing
     let lastFrameTime = 0;
-    const targetFPS = isMobile ? 20 : 40; // PERF: Throttle FPS
+    const targetFPS = isMobile ? 18 : 30; // PERF: Throttle FPS slightly more to save massive CPU on low-end systems
     const frameInterval = 1000 / targetFPS;
 
     // PERF: Detect when user is typing to pause heavy animation

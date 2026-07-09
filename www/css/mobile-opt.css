@@ -39,6 +39,17 @@ input, textarea, select {
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
 
+    /* Disable hover/active layout repainting movements on mobile for instant tap response */
+    .glass-card:hover,
+    .glass-card:active,
+    .menu-card:hover,
+    .menu-card:active,
+    .premium-btn:hover,
+    .premium-btn:active {
+        transform: none !important;
+        transition: none !important;
+    }
+
     /* Reduce heavy animations if present */
     .Antiko-title {
         animation: none !important;

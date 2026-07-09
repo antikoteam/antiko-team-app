@@ -772,7 +772,10 @@ function emojiToUrl(input) { return input; }
 addSafeListener('whatsapp-country-form', 'submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('save-whatsapp-country-btn');
-    if (btn) btn.textContent = 'جاري الحفظ...';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'جاري الحفظ...';
+    }
 
     const id = document.getElementById('whatsapp-country-id').value;
     const rawFlag = document.getElementById('whatsapp-country-flag').value;
@@ -805,7 +808,10 @@ addSafeListener('whatsapp-country-form', 'submit', async (e) => {
         console.error(error);
         alert("حدث خطأ أثناء الحفظ");
     } finally {
-        if (btn) btn.textContent = 'حفظ الرقم';
+        if (btn) {
+            btn.textContent = 'حفظ الرقم';
+            btn.disabled = false;
+        }
     }
 });
 
@@ -893,7 +899,10 @@ async function loadTelegramCountries() {
 addSafeListener('telegram-country-form', 'submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('save-telegram-country-btn');
-    if (btn) btn.textContent = 'جاري الحفظ...';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'جاري الحفظ...';
+    }
 
     const id = document.getElementById('telegram-country-id').value;
     const rawFlag = document.getElementById('telegram-country-flag').value;
@@ -926,7 +935,10 @@ addSafeListener('telegram-country-form', 'submit', async (e) => {
         console.error(error);
         alert("حدث خطأ أثناء الحفظ");
     } finally {
-        if (btn) btn.textContent = 'حفظ الرقم';
+        if (btn) {
+            btn.textContent = 'حفظ الرقم';
+            btn.disabled = false;
+        }
     }
 });
 
@@ -1772,7 +1784,10 @@ window.deleteService = async function (id) {
 addSafeListener('service-form', 'submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('save-service-btn');
-    if (btn) btn.textContent = 'جاري الحفظ...';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'جاري الحفظ...';
+    }
 
     const id = document.getElementById('service-id').value;
     const slug = document.getElementById('service-slug').value.trim();
@@ -1813,14 +1828,13 @@ addSafeListener('service-form', 'submit', async (e) => {
         }
 
         if (btn) {
-            btn.innerHTML = '<i class="ph ph-check"></i> تم الحفظ بنجاح';
-            btn.style.background = 'var(--neon-green)';
+            btn.textContent = 'تم الحفظ بنجاح ✅';
         }
 
         setTimeout(() => {
             if (btn) {
-                btn.innerHTML = 'حفظ القسم';
-                btn.style.background = '';
+                btn.textContent = 'حفظ القسم';
+                btn.disabled = false;
             }
         }, 2000);
 
@@ -1832,7 +1846,10 @@ addSafeListener('service-form', 'submit', async (e) => {
     } catch (e) {
         console.error("SERVICE SAVE ERROR:", e);
         alert("حدث خطأ أثناء حفظ القسم: " + (e.message || ""));
-        if (btn) btn.textContent = 'حفظ القسم';
+        if (btn) {
+            btn.textContent = 'حفظ القسم';
+            btn.disabled = false;
+        }
     }
 });
 

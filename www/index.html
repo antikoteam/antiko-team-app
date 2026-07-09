@@ -12,7 +12,6 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="css/shared.css?v=2.0.2">
     <link rel="stylesheet" href="css/admin.css?v=2.0.2">
-    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.21.2/index.js"></script>
     <link rel="stylesheet" href="css/app.css?v=2.0.2">
     <link rel="stylesheet" href="css/laptop-ui.css?v=2.0.2">
     <link rel="stylesheet" href="css/mobile-opt.css">
@@ -43,45 +42,72 @@
             background-color: transparent !important;
         }
 
-        /* The title movement for mobile */
-        .Antiko-title {
-            animation: glitchText 1.2s infinite linear alternate,
-                floating 3s infinite ease-in-out,
-                neon-glow 2.5s infinite alternate !important;
-            font-family: 'DoctorGlitch', 'Anton', sans-serif !important;
-            color: #ff003c !important;
-            text-shadow: 0 0 15px rgba(255, 0, 60, 0.8) !important;
-            position: relative;
-            z-index: 10;
-            font-size: 4.5rem;
-            margin: 0;
-            letter-spacing: 4px;
+        /* Desktop Title Styles (Glitch + Floating + Glow) */
+        @media (min-width: 769px) {
+            .Antiko-title {
+                animation: glitchText 1.2s infinite linear alternate,
+                    floating 3s infinite ease-in-out,
+                    neon-glow 2.5s infinite alternate !important;
+                font-family: 'DoctorGlitch', 'Anton', sans-serif !important;
+                color: #ff003c !important;
+                text-shadow: 0 0 15px rgba(255, 0, 60, 0.8) !important;
+                position: relative;
+                z-index: 10;
+                font-size: 4.5rem;
+                margin: 0;
+                letter-spacing: 4px;
+            }
+
+            .Antiko-title::before,
+            .Antiko-title::after {
+                content: attr(data-text);
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1;
+                opacity: 0.8;
+            }
+
+            .Antiko-title::before {
+                left: 3px;
+                text-shadow: -3px 0 #ffff00;
+                clip: rect(44px, 9999px, 56px, 0);
+                animation: glitchAnim 2s infinite linear alternate-reverse;
+            }
+
+            .Antiko-title::after {
+                left: -3px;
+                text-shadow: -3px 0 #00ffff;
+                clip: rect(10px, 9999px, 85px, 0);
+                animation: glitchAnim2 3s infinite linear alternate-reverse;
+            }
         }
 
-        .Antiko-title::before,
-        .Antiko-title::after {
-            content: attr(data-text);
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.8;
-        }
+        /* Mobile Title Styles (Smooth Floating & Glow, No Heavy Glitch Repaints) */
+        @media (max-width: 768px) {
+            .Antiko-title {
+                animation: floating 3.5s infinite ease-in-out,
+                    neon-glow 3s infinite alternate !important;
+                font-family: 'DoctorGlitch', 'Anton', sans-serif !important;
+                color: #ff003c !important;
+                text-shadow: 0 0 12px rgba(255, 0, 60, 0.7) !important;
+                position: relative;
+                z-index: 10;
+                font-size: 2.8rem;
+                margin: 0;
+                letter-spacing: 1px;
+            }
 
-        .Antiko-title::before {
-            left: 3px;
-            text-shadow: -3px 0 #ffff00;
-            clip: rect(44px, 9999px, 56px, 0);
-            animation: glitchAnim 2s infinite linear alternate-reverse;
-        }
+            .Antiko-title::before,
+            .Antiko-title::after {
+                display: none !important;
+            }
 
-        .Antiko-title::after {
-            left: -3px;
-            text-shadow: -3px 0 #00ffff;
-            clip: rect(10px, 9999px, 85px, 0);
-            animation: glitchAnim2 3s infinite linear alternate-reverse;
+            .title-wrapper {
+                padding: 10px 0;
+            }
         }
 
         .title-wrapper {
@@ -91,17 +117,6 @@
             width: 100%;
             perspective: 1000px;
             padding: 20px 0;
-        }
-
-        @media (max-width: 768px) {
-            .Antiko-title {
-                font-size: 2.8rem;
-                letter-spacing: 1px;
-            }
-
-            .title-wrapper {
-                padding: 10px 0;
-            }
         }
 
         .bg-effects {

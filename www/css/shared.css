@@ -153,6 +153,7 @@ a {
 }
 
 .scanlines {
+    display: none !important; /* disabled for performance optimization */
     position: fixed;
     top: 0;
     left: 0;
@@ -168,6 +169,7 @@ a {
 }
 
 .noise {
+    display: none !important; /* disabled to prevent CPU intensive SVG turbulence filtering */
     position: fixed;
     top: 0;
     left: 0;
@@ -271,6 +273,7 @@ a {
     border-radius: var(--border-radius);
     z-index: 0;
     transition: var(--transition-smooth);
+    pointer-events: none;
 }
 
 .glass-card:hover .card-edge {
@@ -396,6 +399,7 @@ a {
     transform: translate(-50%, -50%);
     transition: width 0.6s ease, height 0.6s ease;
     z-index: -1;
+    pointer-events: none;
 }
 
 .premium-btn:hover::before {
@@ -417,6 +421,7 @@ a {
     background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
     transform: rotate(45deg) translate(-50%, -50%);
     transition: all 0.6s ease;
+    pointer-events: none;
 }
 
 .premium-btn:hover {
