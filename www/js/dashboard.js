@@ -46,7 +46,6 @@ window.openModal = function (id) {
     const m = document.getElementById(id);
     if (m) {
         m.classList.remove('hidden');
-        m.style.display = 'flex';
         console.log("Modal opened successfully.");
     } else {
         console.error("Modal element not found:", id);
@@ -57,7 +56,6 @@ window.closeModal = function (id) {
     const m = document.getElementById(id);
     if (m) {
         m.classList.add('hidden');
-        m.style.display = 'none';
     }
 };
 
@@ -230,14 +228,24 @@ window.deleteAllTickets = async function () {
 window.deleteOrder = async (id) => { if (!confirm("هل أنت متأكد من حذف هذا الطلب؟")) return; try { await deleteDoc(doc(db, "orders", id)); showToast("تم حذف الطلب بنجاح. 🗑️"); if (typeof loadOrders === 'function') loadOrders(); } catch (e) { console.error(e); showToast("فشل في حذف الطلب.", "error"); } };
 
 
-// Protection Helper for Event Listeners
+// Protection Helper for Event Listeners - يستخدم Event Delegation لدعم العناصر المحملة ديناميكياً
 function addSafeListener(id, event, handler) {
+    // نحاول مباشرة إذا العنصر موجود
     const el = document.getElementById(id);
     if (el) {
         el.addEventListener(event, handler);
-    } else {
-        console.warn(`Element with ID "${id}" not found. skipping ${event} listener.`);
+        return;
     }
+    // إذا لم يكن موجوداً، نستخدم event delegation على document
+    // ونستمع على partialsLoaded ونعيد المحاولة
+    document.addEventListener('partialsLoaded', () => {
+        const delayedEl = document.getElementById(id);
+        if (delayedEl) {
+            delayedEl.addEventListener(event, handler);
+        } else {
+            console.warn(`[addSafeListener] Element "${id}" still not found after partialsLoaded.`);
+        }
+    }, { once: true });
 }
 
 // CRITICAL: Modal helpers were moved to the top of the file
@@ -568,11 +576,10 @@ function updateFlagLabel(inputId) {
     nameLabel.textContent = found ? found.nAr : '';
 }
 
-const fSearch = document.getElementById('flag-search');
-if (fSearch) {
+addSafeListener('flag-search', 'input', (e) => {
     const debouncedRender = debounce((val) => renderFlagLibrary(val), 300);
-    fSearch.addEventListener('input', (e) => debouncedRender(e.target.value));
-}
+    debouncedRender(e.target.value);
+});
 
 function handleAutoFlag(nameId, flagId) {
     const nameInput = document.getElementById(nameId);
@@ -752,11 +759,13 @@ async function loadWhatsappCountries() {
                     <td data-label="الترتيب">${c.sortOrder || 0}</td>
                     <td data-label="التحكم">
                         <div style="display: flex; gap: 8px; justify-content: center;">
-                            <button class="action-btn edit" onclick='editWhatsappCountry(${countryData})' title="تعديل"><i class="ph ph-pencil-simple"></i></button>
-                            <button class="action-btn delete" onclick="deleteWhatsappCountry('${id}')" title="حذف"><i class="ph ph-trash"></i></button>
+                            <button class="action-btn edit" title="تعديل"><i class="ph ph-pencil-simple"></i></button>
+                            <button class="action-btn delete" title="حذف"><i class="ph ph-trash"></i></button>
                         </div>
                     </td>
                 `;
+            tr.querySelector('.edit').addEventListener('click', () => editWhatsappCountry({ id, ...c }));
+            tr.querySelector('.delete').addEventListener('click', () => deleteWhatsappCountry(id));
             tbody.appendChild(tr);
         });
     } catch (e) {
@@ -883,11 +892,13 @@ async function loadTelegramCountries() {
                     <td data-label="الترتيب">${c.sortOrder || 0}</td>
                     <td data-label="التحكم">
                         <div style="display: flex; gap: 8px; justify-content: center;">
-                            <button class="action-btn edit" onclick='editTelegramCountry(${countryData})' title="تعديل"><i class="ph ph-pencil-simple"></i></button>
-                            <button class="action-btn delete" onclick="deleteTelegramCountry('${id}')" title="حذف"><i class="ph ph-trash"></i></button>
+                            <button class="action-btn edit" title="تعديل"><i class="ph ph-pencil-simple"></i></button>
+                            <button class="action-btn delete" title="حذف"><i class="ph ph-trash"></i></button>
                         </div>
                     </td>
                 `;
+            tr.querySelector('.edit').addEventListener('click', () => editTelegramCountry({ id, ...c }));
+            tr.querySelector('.delete').addEventListener('click', () => deleteTelegramCountry(id));
             tbody.appendChild(tr);
         });
     } catch (e) {
@@ -1040,15 +1051,10 @@ async function loadDynamicItems() {
                 : `<span class="badge danger">معطل</span>`;
 
             const tr = document.createElement('tr');
-            const itemData = safeJson({ id, ...d });
 
             // Handle icon/flag display
-            // Support multiple image field names (legacy and current)
             let visual = d.logoBase64 || d.coverBase64 || d.imageBase64 || d.flag || d.icon || '❓';
             if (visual.startsWith('data:image') || visual.startsWith('http')) {
-                visual = `<img src="${visual}" width="30" height="30" style="border-radius:4px; object-fit: cover;">`;
-            }
-            if (visual.startsWith('http') || visual.startsWith('data:image')) {
                 const isBook = (currentService.slug || "").includes('book');
                 const width = isBook ? 35 : 30;
                 const height = isBook ? 50 : 30;
@@ -1083,11 +1089,13 @@ async function loadDynamicItems() {
                         onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${d.sortOrder || 0}</td>
                     <td data-label="التحكم">
                         <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
-                            <button class="action-btn edit" onclick='editItem(${itemData})' title="تعديل"><i class="ph ph-pencil-simple"></i></button>
-                            <button class="action-btn delete" onclick="deleteItem('${id}')" title="حذف"><i class="ph ph-trash"></i></button>
+                            <button class="action-btn edit" title="تعديل"><i class="ph ph-pencil-simple"></i></button>
+                            <button class="action-btn delete" title="حذف"><i class="ph ph-trash"></i></button>
                         </div>
                     </td>
                 `;
+            tr.querySelector('.edit').addEventListener('click', () => editItem({ id, ...d }));
+            tr.querySelector('.delete').addEventListener('click', () => deleteItem(id));
             tbody.appendChild(tr);
         });
     } catch (e) {
@@ -1131,7 +1139,7 @@ window.openItemModal = function () {
         if (optionsGroup) optionsGroup.style.display = 'none';
     }
 
-    document.getElementById('item-modal').classList.remove('hidden');
+    window.openModal('item-modal');
 };
 
 window.addNewOptionRow = function (data = {}) {
@@ -1189,23 +1197,21 @@ window.addNewOptionRow = function (data = {}) {
 
 // (Sound file preview and Base64 conversion removed)
 
-const itemImageFileInput = document.getElementById('item-image-file');
-if (itemImageFileInput) {
-    itemImageFileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 1024 * 850) { // 850KB Limit
-                alert("⚠️ حجم الصورة كبير جداً. Firestore لا يسمح بملفات ضخمة داخل المستندات. يرجى اختيار صورة أقل من 850 كيلوبايت.");
-                itemImageFileInput.value = '';
-                return;
-            }
-            const base64 = await fileToBase64(file);
-            document.getElementById('item-image-base64').value = base64;
-            const preview = document.getElementById('item-image-preview');
-            if (preview) preview.innerHTML = `<img src="${base64}" width="100" height="auto" style="border-radius:8px; object-fit: cover; border:1px solid var(--border-light); margin-top:10px;">`;
+addSafeListener('item-image-file', 'change', async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 1024 * 850) { // 850KB Limit
+            alert("⚠️ حجم الصورة كبير جداً. Firestore لا يسمح بملفات ضخمة داخل المستندات. يرجى اختيار صورة أقل من 850 كيلوبايت.");
+            e.target.value = '';
+            return;
         }
-    });
-}
+        const base64 = await fileToBase64(file);
+        const b64El = document.getElementById('item-image-base64');
+        if (b64El) b64El.value = base64;
+        const preview = document.getElementById('item-image-preview');
+        if (preview) preview.innerHTML = `<img src="${base64}" width="100" height="auto" style="border-radius:8px; object-fit: cover; border:1px solid var(--border-light); margin-top:10px;">`;
+    }
+});
 
 window.editItem = function (data) {
     const slug = (currentService && currentService.slug) || "";
@@ -1293,8 +1299,12 @@ window.deleteItem = async function (id) {
     }
 };
 
-addSafeListener('item-form', 'submit', async (e) => {
-    e.preventDefault();
+window.submitItemFormAction = async function() {
+    const form = document.getElementById('item-form');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
     const btn = document.getElementById('save-item-btn');
     btn.textContent = 'جاري الحفظ...';
     btn.disabled = true;
@@ -1361,7 +1371,7 @@ addSafeListener('item-form', 'submit', async (e) => {
         btn.textContent = 'حفظ العنصر';
         btn.disabled = false;
     }
-});
+};
 
 
 // ==========================================
@@ -1555,24 +1565,21 @@ addSafeListener('team-form', 'submit', async (e) => {
 });
 
 // Handle Team Image Preview
-const teamImageFile = document.getElementById('team-image-file');
-if (teamImageFile) {
-    teamImageFile.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 512 * 1024) { // 512KB for avatars
-                alert("⚠️ حجم صورة العضو كبير. يرجى اختيار صورة أصغر من 500 كيلوبايت.");
-                teamImageFile.value = '';
-                return;
-            }
-            const base64 = await fileToBase64(file);
-            const preview = document.getElementById('team-image-preview');
-            if (preview) {
-                preview.innerHTML = `<img src="${base64}" width="80" height="80" style="border-radius:50%; border:2px solid var(--neon-red); object-fit: cover;">`;
-            }
+addSafeListener('team-image-file', 'change', async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 512 * 1024) { // 512KB for avatars
+            alert("⚠️ حجم صورة العضو كبير. يرجى اختيار صورة أصغر من 500 كيلوبايت.");
+            e.target.value = '';
+            return;
         }
-    });
-}
+        const base64 = await fileToBase64(file);
+        const preview = document.getElementById('team-image-preview');
+        if (preview) {
+            preview.innerHTML = `<img src="${base64}" width="80" height="80" style="border-radius:50%; border:2px solid var(--neon-red); object-fit: cover;">`;
+        }
+    }
+});
 
 // ==========================================
 // UNIFIED ORDERS (BOOKINGS)
@@ -1731,8 +1738,7 @@ window.openServiceModal = function () {
     document.getElementById('service-logo-base64').value = '';
     const preview = document.getElementById('service-logo-preview');
     if (preview) preview.innerHTML = '';
-    const modal = document.getElementById('service-modal');
-    if (modal) modal.classList.remove('hidden');
+    window.openModal('service-modal');
 };
 
 window.editService = function (data) {
@@ -1757,8 +1763,7 @@ window.editService = function (data) {
         else preview.innerHTML = '';
     }
 
-    const modal = document.getElementById('service-modal');
-    if (modal) modal.classList.remove('hidden');
+    window.openModal('service-modal');
 };
 
 window.removeServiceLogo = function () {
@@ -1781,8 +1786,12 @@ window.deleteService = async function (id) {
     }
 };
 
-addSafeListener('service-form', 'submit', async (e) => {
-    e.preventDefault();
+window.submitServiceFormAction = async function() {
+    const form = document.getElementById('service-form');
+    if (form && !form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
     const btn = document.getElementById('save-service-btn');
     if (btn) {
         btn.disabled = true;
@@ -1839,8 +1848,7 @@ addSafeListener('service-form', 'submit', async (e) => {
         }, 2000);
 
         showToast("تم الحفظ بنجاح! ✅");
-        const modal = document.getElementById('service-modal');
-        if (modal) modal.classList.add('hidden');
+        window.closeModal('service-modal');
         loadServicesManagement();
         renderSidebarServices();
     } catch (e) {
@@ -1851,39 +1859,35 @@ addSafeListener('service-form', 'submit', async (e) => {
             btn.disabled = false;
         }
     }
-});
+};
 
 
 
 // Service Logo Preview
-const serviceLogoFileInput = document.getElementById('service-logo-file');
-if (serviceLogoFileInput) {
-    serviceLogoFileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 300 * 1024) { // 300KB for logos
-                alert("⚠️ حجم اللوجو كبير جداً. يرجى ضغط الصورة أو اختيار لوجو أقل من 300 كيلوبايت.");
-                serviceLogoFileInput.value = '';
-                return;
-            }
-            const base64 = await fileToBase64(file);
-            const preview = document.getElementById('service-logo-preview');
-            if (preview) preview.innerHTML = `<img src="${base64}" width="60" height="60" style="border-radius:8px; object-fit: cover; border:1px solid var(--border-light);">`;
-            document.getElementById('service-logo-base64').value = base64;
+addSafeListener('service-logo-file', 'change', async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 300 * 1024) { // 300KB for logos
+            alert("⚠️ حجم اللوجو كبير جداً. يرجى ضغط الصورة أو اختيار لوجو أقل من 300 كيلوبايت.");
+            e.target.value = '';
+            return;
         }
-    });
-}
-const gameLogoFileInput = document.getElementById('game-logo-file');
-if (gameLogoFileInput) {
-    gameLogoFileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const base64 = await fileToBase64(file);
-            const preview = document.getElementById('game-logo-preview');
-            if (preview) preview.innerHTML = `<img src="${base64}" width="60" height="60" style="border-radius:8px; object-fit: cover; border:1px solid var(--border-light);">`;
-        }
-    });
-}
+        const base64 = await fileToBase64(file);
+        const preview = document.getElementById('service-logo-preview');
+        if (preview) preview.innerHTML = `<img src="${base64}" width="60" height="60" style="border-radius:8px; object-fit: cover; border:1px solid var(--border-light);">`;
+        const b64El = document.getElementById('service-logo-base64');
+        if (b64El) b64El.value = base64;
+    }
+});
+addSafeListener('game-logo-file', 'change', async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const base64 = await fileToBase64(file);
+        const preview = document.getElementById('game-logo-preview');
+        if (preview) preview.innerHTML = `<img src="${base64}" width="60" height="60" style="border-radius:8px; object-fit: cover; border:1px solid var(--border-light);">`;
+    }
+});
+
 
 // ==========================================
 // BOOKS & NOVELS
@@ -1919,10 +1923,12 @@ async function loadBooksManagement() {
                     <td data-label="الحالة">${statusBadge}</td>
                     <td data-label="الترتيب">${b.sortOrder || 0}</td>
                     <td data-label="التحكم">
-                        <button class="action-btn edit" onclick='editBook(${bookData})' title="تعديل"><i class="ph ph-pencil-simple"></i></button>
-                        <button class="action-btn delete" onclick="deleteBook('${id}')" title="حذف"><i class="ph ph-trash"></i></button>
+                        <button class="action-btn edit" title="تعديل"><i class="ph ph-pencil-simple"></i></button>
+                        <button class="action-btn delete" title="حذف"><i class="ph ph-trash"></i></button>
                     </td>
                 `;
+            tr.querySelector('.edit').addEventListener('click', () => editBook({ id, ...b }));
+            tr.querySelector('.delete').addEventListener('click', () => deleteBook(id));
             tbody.appendChild(tr);
         });
     } catch (e) {
@@ -1948,8 +1954,7 @@ window.editBook = function (b) {
         else preview.innerHTML = '';
     }
 
-    const modal = document.getElementById('book-modal');
-    if (modal) modal.classList.remove('hidden');
+    window.openModal('book-modal');
 };
 
 window.deleteBook = async function (id) {
@@ -2023,22 +2028,21 @@ addSafeListener('book-form', 'submit', async (e) => {
     }
 });
 
-const bookCoverFileInput = document.getElementById('book-cover-file');
-if (bookCoverFileInput) {
-    bookCoverFileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 800 * 1024) { // 800KB for covers
-                alert("⚠️ غلاف الكتاب كبير جداً. يرجى اختيار صورة أقل من 800 كيلوبايت.");
-                bookCoverFileInput.value = '';
-                return;
-            }
-            const base64 = await fileToBase64(file);
-            const preview = document.getElementById('book-cover-preview');
-            if (preview) preview.innerHTML = `<img src="${base64}" width="60" height="90" style="border-radius:4px; object-fit: cover; border:1px solid var(--border-light);">`;
+addSafeListener('book-cover-file', 'change', async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 800 * 1024) { // 800KB for covers
+            alert("⚠️ غلاف الكتاب كبير جداً. يرجى اختيار صورة أقل من 800 كيلوبايت.");
+            e.target.value = '';
+            return;
         }
-    });
-}
+        const base64 = await fileToBase64(file);
+        const preview = document.getElementById('book-cover-preview');
+        if (preview) preview.innerHTML = `<img src="${base64}" width="60" height="90" style="border-radius:4px; object-fit: cover; border:1px solid var(--border-light);">`;
+        const b64El = document.getElementById('book-cover-base64');
+        if (b64El) b64El.value = base64;
+    }
+});
 
 async function deleteOrder(id) {
     if (!confirm("هل أنت متأكد من حذف هذا الطلب؟")) return;

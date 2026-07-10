@@ -68,9 +68,9 @@ body {
 .Antiko-title {
     color: #ff003c !important;
     /* Brighter Red for better visibility */
-    animation: glitchText 1.5s infinite linear alternate,
+    /* animation: glitchText 1.5s infinite linear alternate,
         floating 3s infinite ease-in-out,
-        neon-glow-vibrant 2s infinite alternate !important;
+        neon-glow-vibrant 2s infinite alternate !important; */
     font-family: 'DoctorGlitch', 'Anton', sans-serif !important;
     position: relative;
     z-index: 10;
@@ -78,17 +78,17 @@ body {
 
 /* Background Effects Visibility */
 .cyber-grid {
-    display: block !important;
+    display: none !important;
     opacity: 0.25 !important;
-    animation: gridMove 10s linear infinite !important;
+    animation: gridMove 60s linear infinite !important;
     background-image: linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px) !important;
 }
 
 .red-flare {
-    display: block !important;
+    display: none !important;
     opacity: 0.6 !important;
-    animation: flare-pulse 10s infinite alternate ease-in-out !important;
+    /* animation: flare-pulse 10s infinite alternate ease-in-out !important; */
 }
 
 @keyframes flare-pulse {
@@ -106,17 +106,17 @@ body {
 /* Mobile Overrides - Kill any "animation: none" */
 @media (max-width: 991px) {
     .Antiko-title {
-        animation: glitchText 1.5s infinite linear alternate,
+        /* animation: glitchText 1.5s infinite linear alternate,
             floating 3s infinite ease-in-out,
-            neon-glow-vibrant 2s infinite alternate !important;
+            neon-glow-vibrant 2s infinite alternate !important; */
         font-size: 3.2rem !important;
     }
 
     .cyber-grid,
     .red-flare {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 0.3 !important;
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
     }
 }
 
@@ -136,7 +136,7 @@ body {
     border-radius: 16px !important;
     box-shadow: 0 10px 30px rgba(255, 0, 60, 0.3), inset 0 0 30px rgba(0, 0, 0, 0.9) !important;
     backdrop-filter: blur(25px) !important;
-    animation: glowPulseBanner 4s infinite alternate ease-in-out !important;
+    /* animation: glowPulseBanner 4s infinite alternate ease-in-out !important; */
 }
 
 .home-announcement .announcement-content,

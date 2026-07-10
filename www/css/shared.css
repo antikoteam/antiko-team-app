@@ -33,7 +33,7 @@
 
     /* Layout */
     --border-radius: 16px;
-    --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-smooth: all 0.2s ease;
 }
 
 /* Custom Fonts */
@@ -69,6 +69,7 @@ a {
 
 /* Background Effects */
 .bg-effects {
+    display: none !important;
     position: fixed;
     top: 0;
     left: 0;
@@ -213,25 +214,19 @@ a {
     text-shadow: 0 0 10px rgba(138, 3, 3, 0.7), 0 0 20px rgba(0, 0, 0, 0.8);
     position: relative;
     z-index: 2;
-    animation: glitchText 1.5s infinite linear alternate, floating 4s infinite ease-in-out, neon-glow 3s infinite alternate;
+    animation: none !important;
 }
 
 .Antiko-title::before,
 .Antiko-title::after {
-    content: attr(data-text);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
+    display: none !important;
 }
 
 .Antiko-title::before {
     left: 2px;
     text-shadow: -2px 0 #ffff00, 2px 0 #ff003c;
     clip: rect(44px, 410px, 56px, 0);
-    animation: glitchAnim 2s infinite linear alternate-reverse;
+    /* animation: glitchAnim 2s infinite linear alternate-reverse; */
     opacity: 0.9;
 }
 
@@ -239,7 +234,7 @@ a {
     left: -2px;
     text-shadow: -2px 0 #ff003c, 2px 0 #ffff00;
     clip: rect(44px, 410px, 56px, 0);
-    animation: glitchAnim2 1.5s infinite linear alternate-reverse;
+    /* animation: glitchAnim2 1.5s infinite linear alternate-reverse; */
     opacity: 0.9;
 }
 
@@ -376,7 +371,7 @@ a {
     font-weight: 600;
     font-size: 1rem;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 1;
     transition: var(--transition-smooth);
     box-shadow: 0 4px 15px rgba(255, 0, 60, 0.4);
     position: relative;
@@ -385,6 +380,14 @@ a {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.premium-btn > * {
+    position: relative;
+    z-index: 2;
+    /* pointer-events: none; removed to fix touch issues */
 }
 
 .premium-btn::before {
@@ -402,9 +405,11 @@ a {
     pointer-events: none;
 }
 
-.premium-btn:hover::before {
-    width: 300px;
-    height: 300px;
+@media (hover: hover) {
+    .premium-btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
 }
 
 .premium-btn.secondary::before {
@@ -422,16 +427,17 @@ a {
     transform: rotate(45deg) translate(-50%, -50%);
     transition: all 0.6s ease;
     pointer-events: none;
+    z-index: -1;
 }
 
 .premium-btn:hover {
-    transform: translateY(-2px);
+    /* transform: translateY(-2px); */
     box-shadow: 0 6px 20px rgba(255, 0, 60, 0.6);
 }
 
-.premium-btn:hover::after {
+/* .premium-btn:hover::after {
     transform: rotate(45deg) translate(50%, 50%);
-}
+} */
 
 .premium-btn.secondary {
     background: transparent;

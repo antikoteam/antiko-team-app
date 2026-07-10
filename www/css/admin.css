@@ -59,6 +59,35 @@
     box-shadow: 0 0 50px rgba(255, 0, 60, 0.2);
 }
 
+/* Clean Solid Button for form submissions to avoid pointer/touch issues */
+.solid-action-btn {
+    background-color: var(--neon-red);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    font-family: var(--font-body);
+    font-weight: 600;
+    transition: background-color 0.2s;
+    box-shadow: none;
+    outline: none;
+    display: inline-block;
+    padding: 14px 20px;
+    font-size: 1rem;
+    position: relative;
+    z-index: 10;
+}
+
+.solid-action-btn:hover {
+    background-color: #d10031;
+}
+
+.solid-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .form-group {
     margin-bottom: 20px;
 }
