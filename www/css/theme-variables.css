@@ -1,0 +1,46 @@
+/* 
+====================================================================
+                        Antiko BOT SHARED THEME - VARIABLES
+==================================================================== 
+*/
+
+:root {
+    /* Color Palette */
+    --bg-dark: #000000;
+    --bg-card: rgba(0, 0, 0, 0.6);
+    --bg-card-hover: rgba(10, 10, 10, 0.8);
+
+    --neon-red: #ff003c;
+    --neon-red-glow: rgba(255, 0, 60, 0.4);
+    --neon-red-dim: rgba(255, 0, 60, 0.15);
+
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0ab;
+    --text-muted: #6b6b75;
+
+    --border-light: rgba(255, 255, 255, 0.06);
+    --border-accent: rgba(255, 0, 60, 0.3);
+
+    --success: #00ff88;
+    --success-glow: rgba(0, 255, 136, 0.2);
+    --warning: #ffb800;
+    --warning-glow: rgba(255, 184, 0, 0.2);
+    --offline: #ff003c;
+
+    /* Typography */
+    --font-heading: 'Orbitron', 'Alexandria', sans-serif;
+    --font-body: 'Alexandria', 'Cairo', sans-serif;
+
+    /* Layout */
+    --border-radius: 16px;
+    --transition-smooth: all 0.2s ease;
+}
+
+/* Custom Fonts */
+@font-face {
+    font-family: 'DoctorGlitch';
+    src: url('../assets/fonts/DoctorGlitch.otf?v=2') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+}

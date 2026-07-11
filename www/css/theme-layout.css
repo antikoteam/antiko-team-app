@@ -1,0 +1,143 @@
+/* 
+====================================================================
+                        Antiko BOT SHARED THEME - LAYOUT
+==================================================================== 
+*/
+
+/* Utilities & Containers */
+.container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 10px;
+    }
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+/* Page Views and Application wrappers */
+#main-content,
+#main-view,
+.app-container,
+#app-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    min-height: 100vh;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.page-view {
+    width: 100%;
+    animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    margin-top: 0 !important;
+}
+
+.page-view:not(#main-menu) {
+    padding-top: 5px;
+    padding-bottom: 120px;
+    /* Space for bottom nav */
+}
+
+/* Home Menu Grid Layout */
+.home-grid {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+    transition: var(--transition-smooth);
+}
+
+.home-grid.hidden {
+    display: none !important;
+}
+
+/* Page Animations Keyframes */
+@keyframes pageEnter {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes mobilePageEnter {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .page-view {
+        animation: mobilePageEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+}
+
+/* Stagger Classes */
+.stagger-1 {
+    animation-delay: 0.1s;
+}
+
+.stagger-2 {
+    animation-delay: 0.2s;
+}
+
+.stagger-3 {
+    animation-delay: 0.3s;
+}
+
+.stagger-4 {
+    animation-delay: 0.4s;
+}
+
+.stagger-5 {
+    animation-delay: 0.5s;
+}
