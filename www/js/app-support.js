@@ -1,5 +1,6 @@
 import { db, collection, addDoc, query, where, onSnapshot } from "./firebase-config.js";
 import { state } from "./app-state.js";
+import { notifyAdmins } from "./notifications.js";
 
 let unsubSupportChat = null;
 
@@ -168,6 +169,9 @@ const initSupportControls = () => {
                     status: 'open'
                 });
                 msgInput.value = '';
+                // Notify all admins about the new support message
+                const senderName = state.currentUser.email || state.currentUser.uid;
+                notifyAdmins("🔔 رسالة دعم جديدة", `${senderName}: ${text}`).catch(e => console.warn("notifyAdmins failed:", e));
             } catch (err) {
                 console.error("Chat error:", err);
                 if (window.showToast) window.showToast('فشل في إرسال الرسالة، يرجى المحاولة لاحقاً', 'error');

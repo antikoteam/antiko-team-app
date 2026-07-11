@@ -1,5 +1,181 @@
 import { auth, db, onAuthStateChanged, collection, getDocs, getDoc, doc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, onSnapshot, where, writeBatch } from "./firebase-config.js";
 
+window.isNativePlatform = function() {
+    const cap = window.Capacitor;
+    if (!cap) return false;
+    if (typeof cap.getPlatform === 'function') {
+        return cap.getPlatform() !== 'web';
+    }
+    return cap.isNativePlatform === true;
+};
+// --- FCM V1 Configuration and Helper Functions ---
+const serviceAccount = {
+  "type": "service_account",
+  "project_id": "antiko-cb40b",
+  "private_key_id": "605b146685ebd6bd5814a40d521d3cfddaf991f8",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDj4kqbXU9e+qhg\n44ol71MZtQxOA+LgpQty+E4omionkc6ERmT7lJSB+xAfMuHhskiGXyXXQcKo15k9\naTgFP0WBFY/R61rh+Cqt1fJCmbKVzmcgcdmYGwbOa5Jiu6TPZXTq3XL8YVtPh481\nKO8SM2mSij7B30B7SvellioFUoTUSYbToy3enfw5aF8WOUpW6a0fEdedzfTUTONg\nuvy9YmYdSomzFRLec7km50VkcJT3Cvs/WT0ZVPSstJgZYRbl5exlQUhQUkuJtM7W\n7zPk5qNi/WfBVndjTW+DK4NVEflsEdB1J3A4EeD6/SJAGsOKttTHt//VhMSCJeOu\ng4C3X2IdAgMBAAECggEAAxHrq5X0hkgkZMQox2PaGXJ120bN7Sg8DcBbnGXRsJCU\nMo/L0RNw2e/Ub6v2g0OTTfNR/3x8aPYZAEzlFM9qTWSWRR+bE1VBDSN6bO93vb3q\nNMBj5cEwQWKnAugaC2ZuAbLNcRBf5wpH+x4O9NtQp+LV5c272o1csod7dgpLdAKp\n3EIkqF/GoeSjrvV1HUcjxAb7v8ceFAie2lVYTzPVJYG/OQHbIy5s4GlGm/HCIBMS\n4B9CHfjYD03Bv2GwyVDWY4lzOeKBmQrYZJPfITaSwB/gO1wRzSgUGc8VJEiqUR0S\nk7rPEYEzzNSXcYwaV1EjewoSC+UvV12BtRTllq1zTwKBgQD333GBasLEZlFcG62x\n4pLrD0ucMTtJapTVeoe3aGfga1lVCTXCSMWz6WwIMu5UuIyBVaezHYQqTApx2Ert\nCetGWEoiKeDJDFgGGciacAl4sBsTFxJYM5PaZ3pTxvJgSYsQR5zaYQWDAlo4dySD\n8GQmprMHwPMoFhiLH+8YMc+7DwKBgQDrWxGKyK/ePObxsq7VKRSMi7cad7eBpRKj\nwrXpWE0HYUABrIvLknja7ONa/qkON7WcY7mldmPnW+7/nwypjZGY3X0eSEWHYDWo\nwBbwl4qgpwvdXi6PgcI02ORCyfBV5piV5umpYQRGpkNStTtKLi0aWJa0LuMxgGwG\nEYzvpcOAEwKBgQCb1GR2WRjjAfQqNNho2alFj5MYObcs+41f/C0wN7n+U16Q4D5k\nyv1Hkvqw2NwOdQsYEDJin67ELJPwaGsKRE8eJUlN2wgPPOxlwXXk6YR61DPhN4L3\n4k0UZDN6Ubt0nyeG746Dl7UwXJ09nGFfdRRxXCF3QW1ciS+a31Of4UjYLwKBgQC/\nuQj6QG+bn4sWO1PWy0c1Ep+PTRTM5Lbhdj0QIGFncJ5efrvGksQmuzCeMLNwpIsq\nIcbadi3+C1MPIvaCrJN9rng9Eeyp0gMEO660QQ6pvkqZAx70wmR8/m47xhslLtr/\nygJwe1qrXsea+Y2Z6THOs3nYwBVNfusAqo1fr24pxwKBgAgS4fGWFUOxp3NnDxk7\njFKmk0EF7SdvK5mcwMjlq+GNgE1UT5I3qs6Y4tcp0stK1x0JNON1y+5uD2XrILm2\n02dKwNLG86tzlauB8Xo1jAFe5760Duf+VEs35d2MLaNYjmVn3WvUoUzRojF43t1B\n/kjNn0itFFnzD4eD1NUC96DD\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@antiko-cb40b.iam.gserviceaccount.com"
+};
+
+function base64UrlEncode(str) {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+}
+
+function arrayBufferToBase64Url(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+}
+
+async function importPrivateKey(pemKey) {
+    const cleanPem = pemKey
+        .replace(/-----BEGIN PRIVATE KEY-----/, '')
+        .replace(/-----END PRIVATE KEY-----/, '')
+        .replace(/\s/g, '');
+    
+    const binaryDerString = atob(cleanPem);
+    const binaryDer = new Uint8Array(binaryDerString.length);
+    for (let i = 0; i < binaryDerString.length; i++) {
+        binaryDer[i] = binaryDerString.charCodeAt(i);
+    }
+    
+    return await window.crypto.subtle.importKey(
+        'pkcs8',
+        binaryDer.buffer,
+        {
+            name: 'RSASSA-PKCS1-v1_5',
+            hash: 'SHA-256'
+        },
+        false,
+        ['sign']
+    );
+}
+
+async function createJWTAssertion(sa) {
+    const header = JSON.stringify({ alg: "RS256", typ: "JWT" });
+    const now = Math.floor(Date.now() / 1000);
+    const claims = JSON.stringify({
+        iss: sa.client_email,
+        scope: "https://www.googleapis.com/auth/firebase.messaging",
+        aud: "https://oauth2.googleapis.com/token",
+        exp: now + 3600,
+        iat: now
+    });
+    
+    const unsignedJWT = `${base64UrlEncode(header)}.${base64UrlEncode(claims)}`;
+    const privateKey = await importPrivateKey(sa.private_key);
+    
+    const signature = await window.crypto.subtle.sign(
+        'RSASSA-PKCS1-v1_5',
+        privateKey,
+        new TextEncoder().encode(unsignedJWT)
+    );
+    
+    const signatureBase64 = arrayBufferToBase64Url(signature);
+    return `${unsignedJWT}.${signatureBase64}`;
+}
+
+let fcmAccessTokenCache = null;
+let fcmAccessTokenExpiry = 0;
+
+async function getFcmV1AccessToken(sa) {
+    const now = Math.floor(Date.now() / 1000);
+    if (fcmAccessTokenCache && now < fcmAccessTokenExpiry - 60) {
+        return fcmAccessTokenCache;
+    }
+    
+    const assertion = await createJWTAssertion(sa);
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${assertion}`
+    });
+    
+    if (!response.ok) {
+        throw new Error(`Token exchange failed: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    fcmAccessTokenCache = data.access_token;
+    fcmAccessTokenExpiry = now + data.expires_in;
+    return fcmAccessTokenCache;
+}
+
+async function sendFcmV1Notification(fcmToken, title, body) {
+    try {
+        let configData = null;
+        try {
+            const configDoc = await getDoc(doc(db, 'settings', 'fcm_config'));
+            if (configDoc.exists()) {
+                configData = configDoc.data();
+            } else {
+                console.log("FCM config not found in Firestore. Provisioning now...");
+                await setDoc(doc(db, 'settings', 'fcm_config'), serviceAccount);
+                configData = serviceAccount;
+            }
+        } catch (dbErr) {
+            console.warn("Could not read/write fcm_config in Firestore, using embedded key:", dbErr);
+            configData = serviceAccount;
+        }
+
+        if (!configData || !configData.private_key) {
+            console.error("No FCM config available.");
+            return;
+        }
+
+        const accessToken = await getFcmV1AccessToken(configData);
+        const url = `https://fcm.googleapis.com/v1/projects/${configData.project_id}/messages:send`;
+        const payload = {
+            message: {
+                token: fcmToken,
+                android: {
+                    priority: "high"
+                },
+                data: {
+                    title: title,
+                    body: body
+                }
+            }
+        };
+
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            const errText = await res.text();
+            console.error("FCM V1 send API error:", errText);
+        } else {
+            console.log("FCM V1 notification successfully dispatched to Google servers!");
+        }
+    } catch (e) {
+        console.error("sendFcmV1Notification error:", e);
+    }
+}
+
 // --- GLOBAL ERROR HANDLER ---
 window.onerror = function (msg, url, line, col, error) {
     console.error(`GLOBAL ERROR: ${msg} at ${url}:${line}`);
@@ -39,6 +215,53 @@ window.showToast = function (msg, type = "success") {
         toast.style.opacity = "0";
         toast.style.bottom = "30px";
     }, 3000);
+};
+
+window.sendNativeNotification = function(title, body) {
+    // Check user preference
+    try {
+        const settings = JSON.parse(localStorage.getItem('antiko_settings')) || {};
+        if (settings.notificationsEnabled === false) return;
+    } catch(e) {}
+
+    const isNative = window.isNativePlatform();
+    const cap = window.Capacitor;
+
+    if (isNative && cap) {
+        // Method 1: Direct access via Capacitor.Plugins (auto-registered from Java)
+        try {
+            const plugin = cap.Plugins && cap.Plugins.LocalNotify;
+            if (plugin && typeof plugin.show === 'function') {
+                plugin.show({ title, body });
+                return;
+            }
+        } catch(e) { console.warn('LocalNotify direct failed:', e); }
+
+        // Method 2: Capacitor nativeCallback (direct bridge call)
+        try {
+            if (typeof cap.nativeCallback === 'function') {
+                cap.nativeCallback('LocalNotify', 'show', { title, body }, () => {});
+                return;
+            }
+        } catch(e) { console.warn('LocalNotify nativeCallback failed:', e); }
+
+        // Method 3: Capacitor nativePromise (direct bridge promise)
+        try {
+            if (typeof cap.nativePromise === 'function') {
+                cap.nativePromise('LocalNotify', 'show', { title, body });
+                return;
+            }
+        } catch(e) { console.warn('LocalNotify nativePromise failed:', e); }
+    }
+
+    // Web fallback: use Web Notification API
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body, icon: 'assets/icon.png' });
+        return;
+    }
+
+    // Last resort: in-app toast
+    if (typeof window.showToast === 'function') window.showToast(`🔔 ${title}: ${body}`, 'success');
 };
 
 window.openModal = function (id) {
@@ -275,9 +498,11 @@ addSafeListener('admin-reply-form', 'submit', async (e) => {
     const chatEmailEl = document.getElementById('chat-user-email');
     const chatUserEmail = chatEmailEl ? chatEmailEl.textContent : '';
 
+    const targetUserId = activeChatUserId; // Preserve active user ID
+
     try {
         await addDoc(collection(db, 'support_tickets'), {
-            userId: activeChatUserId,
+            userId: targetUserId,
             userEmail: chatUserEmail,
             senderId: 'admin',
             text: text,
@@ -286,6 +511,23 @@ addSafeListener('admin-reply-form', 'submit', async (e) => {
         });
         input.value = '';
         showToast("تم إرسال الرد ✅");
+
+        // Fetch user's FCM Token and send push notification
+        try {
+            const userDoc = await getDoc(doc(db, "users", targetUserId));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                if (userData && userData.fcmToken) {
+                    console.log("Sending push notification to user:", targetUserId, "Token:", userData.fcmToken);
+                    sendFcmV1Notification(userData.fcmToken, "أنتيكو تيم - رد الدعم الفني", text);
+                } else {
+                    console.log("No FCM Token registered for user:", targetUserId);
+                }
+            }
+        } catch (fcmErr) {
+            console.error("FCM dispatch error:", fcmErr);
+        }
+
     } catch (err) {
         console.error("Reply error:", err);
         showToast("فشل في إرسال الرد", "error");
@@ -2135,10 +2377,8 @@ async function initDashboard() {
         console.log("Antiko: Section Home is now visible.");
     }
 
-    // Request Notification Permission inside Dashboard
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
+    // Notification permission is handled by MainActivity on Android
+    // No need to request here
 
     // Super Admin Check
     const initBtn = document.getElementById('init-db-btn');
@@ -2151,49 +2391,41 @@ async function initDashboard() {
         }
     }
 
-    // Listen to new orders and tickets for notifications
-    if (Notification.permission === 'granted') {
-        // 1. Listen for new orders
-        if (ordersUnsubGlobal) ordersUnsubGlobal();
-        isInitialOrdersLoad = true;
-        ordersUnsubGlobal = onSnapshot(collection(db, "orders"), (snap) => {
-            if (isInitialOrdersLoad) {
-                isInitialOrdersLoad = false;
-                return;
+    // 1. Listen for new orders - notify admin
+    if (ordersUnsubGlobal) ordersUnsubGlobal();
+    isInitialOrdersLoad = true;
+    ordersUnsubGlobal = onSnapshot(collection(db, "orders"), (snap) => {
+        if (isInitialOrdersLoad) {
+            isInitialOrdersLoad = false;
+            return;
+        }
+        snap.docChanges().forEach((change) => {
+            if (change.type === "added") {
+                const orderData = change.doc.data();
+                const orderLabel = orderData.serviceName || orderData.gameName || 'طلب جديد';
+                const orderPhone = orderData.userWhatsApp || '';
+                sendNativeNotification("طلب جديد وارد! 🔔", `${orderLabel}${orderPhone ? ' - ' + orderPhone : ''}`);
             }
-            snap.docChanges().forEach((change) => {
-                if (change.type === "added") {
-                    const orderData = change.doc.data();
-                    new Notification("طلب جديد وارد! 🔔", {
-                        body: `${orderData.serviceName || orderData.gameName || 'طلب جديد'} - ${orderData.userWhatsApp || ''}`,
-                        icon: 'assets/icon.png'
-                    });
-                }
-            });
         });
+    });
 
-        // 2. Listen for new client support messages
-        if (ticketsUnsubGlobal) ticketsUnsubGlobal();
-        isInitialTicketsLoad = true;
-        ticketsUnsubGlobal = onSnapshot(collection(db, "support_tickets"), (snap) => {
-            if (isInitialTicketsLoad) {
-                isInitialTicketsLoad = false;
-                return;
-            }
-            snap.docChanges().forEach((change) => {
-                if (change.type === "added") {
-                    const ticketData = change.doc.data();
-                    // Notify only if it's sent by a user (not admin)
-                    if (ticketData.senderId !== 'admin') {
-                        new Notification("رسالة دعم جديدة ✉️", {
-                            body: `${ticketData.userEmail || 'عميل'}: ${ticketData.text}`,
-                            icon: 'assets/icon.png'
-                        });
-                    }
+    // 2. Listen for new client support messages - notify admin
+    if (ticketsUnsubGlobal) ticketsUnsubGlobal();
+    isInitialTicketsLoad = true;
+    ticketsUnsubGlobal = onSnapshot(collection(db, "support_tickets"), (snap) => {
+        if (isInitialTicketsLoad) {
+            isInitialTicketsLoad = false;
+            return;
+        }
+        snap.docChanges().forEach((change) => {
+            if (change.type === "added") {
+                const ticketData = change.doc.data();
+                if (ticketData.senderId !== 'admin') {
+                    sendNativeNotification("رسالة دعم جديدة ✉️", `${ticketData.userEmail || 'عميل'}: ${ticketData.text}`);
                 }
-            });
+            }
         });
-    }
+    });
 
     try {
         await renderSidebarServices();

@@ -3,6 +3,9 @@
  * This file coordinates and boots modular architectures.
  */
 
+// 0. Notification & FCM Systems
+import "./notifications.js";
+
 // 1. Shared State Registry
 import "./app-state.js";
 

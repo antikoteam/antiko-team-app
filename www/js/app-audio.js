@@ -82,7 +82,7 @@ if (document.readyState === 'loading') {
 // Background / Visibility / Minimize support
 (async () => {
     try {
-        if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+        if (window.isNativePlatform && window.isNativePlatform()) {
             if (window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
                 window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
                     if (!isActive) pauseAudioGlobally();

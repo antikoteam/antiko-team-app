@@ -1,5 +1,6 @@
 import { db, auth, googleProvider, GoogleAuthProvider, signInWithCredential, signInWithPopup, getRedirectResult, collection, getDocs, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "./firebase-config.js";
 import { state } from "./app-state.js";
+import { setupUserNotifications } from "./notifications.js";
 
 // Load elements on demand or inside handlers
 const getElements = () => ({
@@ -137,6 +138,7 @@ const initAuthListeners = () => {
         if (user) {
             state.currentUser = user;
             checkAdminStatus(user);
+            setupUserNotifications(user);
 
             if (els.navLoginBtn) els.navLoginBtn.classList.add('hidden');
             if (els.navAccountBtn) els.navAccountBtn.classList.remove('hidden');
@@ -248,7 +250,7 @@ const initAuthListeners = () => {
             googleLoginBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> جاري تسجيل الدخول...';
             googleLoginBtn.disabled = true;
 
-            const isNative = window.Capacitor && window.Capacitor.isNativePlatform();
+            const isNative = window.isNativePlatform ? window.isNativePlatform() : false;
 
             try {
                 if (isNative && window.Capacitor.Plugins && window.Capacitor.Plugins.FirebaseAuthentication) {
