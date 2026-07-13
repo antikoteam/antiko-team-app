@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antiko</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;800&family=Orbitron:wght@600;800;900&family=Anton&display=swap"
+        rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/shared.css?v=2.0.2">
+    <link rel="stylesheet" href="css/admin.css?v=2.0.2">
+    <link rel="stylesheet" href="css/app.css?v=2.0.2">
+    <link rel="stylesheet" href="css/laptop-ui.css?v=2.0.2">
+    <link rel="stylesheet" href="css/mobile-opt.css">
+    <link rel="stylesheet" href="css/logo-styles.css">
+    <style>
+        /* Mobile Direct Overrides for Pure Black & Motion */
+        :root {
+            --bg-dark: #000000 !important;
+        }
+
+        body {
+            background-color: #000000 !important;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .glass-card .card-inner,
+        .modal,
+        .mobile-bottom-nav {
+            background: #000000 !important;
+        }
+
+        #main-view,
+        #app-content {
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        /* Desktop Title Styles (Glitch + Floating + Glow) */
+        @media (min-width: 769px) {
+            .Antiko-title {
+                /* animation: glitchText 2s infinite linear alternate,
+                    floating 4.5s infinite ease-in-out,
+                    neon-glow 2.5s infinite alternate !important; */
+                animation: none !important;
+                font-family: 'DoctorGlitch', 'Anton', sans-serif !important;
+                color: #ff003c !important;
+                text-shadow: 0 0 15px rgba(255, 0, 60, 0.8) !important;
+                position: relative;
+                z-index: 10;
+                font-size: 4.5rem;
+                margin: 0;
+                letter-spacing: 4px;
+            }
+
+            .Antiko-title::before,
+            .Antiko-title::after {
+                display: none !important;
+            }
+
+            /* .Antiko-title::before { ... } */
+            /* .Antiko-title::after { ... } */
+        }
+
+        /* Mobile Title Styles (Smooth Floating & Glow, No Heavy Glitch Repaints) */
+        @media (max-width: 768px) {
+            .Antiko-title {
+                /* animation: floating 3.5s infinite ease-in-out,
+                    neon-glow 3s infinite alternate !important; */
+                animation: none !important;
+                font-family: 'DoctorGlitch', 'Anton', sans-serif !important;
+                color: #ff003c !important;
+                text-shadow: 0 0 12px rgba(255, 0, 60, 0.7) !important;
+                position: relative;
+                z-index: 10;
+                font-size: 2.8rem;
+                margin: 0;
+                letter-spacing: 1px;
+            }
+
+            .Antiko-title::before,
+            .Antiko-title::after {
+                display: none !important;
+            }
+
+            .title-wrapper {
+                padding: 10px 0;
+            }
+        }
+
+        .title-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            perspective: 1000px;
+            padding: 20px 0;
+        }
+
+        .bg-effects {
+            display: none !important;
+        }
+
+        .cyber-grid {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        #bg-lines {
+            opacity: 1 !important;
+            z-index: 1 !important;
+        }
+
+        .red-flare {
+            opacity: 0.8 !important;
+            filter: blur(80px) !important;
+            z-index: 2 !important;
+        }
+
+        #main-view {
+            position: relative !important;
+            z-index: 10 !important;
+            background: transparent !important;
+        }
+
+        @keyframes floating {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-15px) rotate(1deg);
+            }
+        }
+
+        @keyframes neon-glow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 10px rgba(255, 0, 60, 0.6);
+            }
+
+            50% {
+                text-shadow: 0 0 25px rgba(255, 0, 60, 1), 0 0 45px rgba(255, 0, 60, 0.5);
+            }
+        }
+
+        /* =============================================
+           PREMIUM LOGIN MODAL STYLES
+        ============================================= */
+        #login-modal.modal-overlay {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(0, 0, 0, 0.75);
+        }
+
+        .login-card {
+            background: linear-gradient(145deg, #0d0d0d, #111111) !important;
+            border: 1px solid rgba(255, 0, 60, 0.15);
+            border-radius: 24px !important;
+            max-width: 420px;
+            width: 92%;
+            padding: 0 !important;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 0, 60, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            animation: loginSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            position: relative;
+        }
+
+        @keyframes loginSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.94);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-card-header {
+            background: linear-gradient(135deg, #1a0008 0%, #0d0d0d 60%, #0a0010 100%);
+            padding: 36px 32px 28px;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 0, 60, 0.1);
+            overflow: hidden;
+        }
+
+        .login-card-header::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(255, 0, 60, 0.18) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .login-logo-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #ff003c, #cc0030);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: 0 8px 24px rgba(255, 0, 60, 0.35), 0 0 0 1px rgba(255, 0, 60, 0.2);
+            font-size: 1.8rem;
+        }
+
+        .login-card-header h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0 0 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .login-card-header p {
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.88rem;
+            margin: 0;
+        }
+
+        .login-card-body {
+            padding: 28px 32px 32px;
+        }
+
+        /* Google Button */
+        .google-login-btn-pro {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 13px 20px;
+            background: #fff;
+            color: #1f1f1f;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.2px;
+        }
+
+        .google-login-btn-pro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .google-login-btn-pro:active {
+            transform: translateY(0);
+        }
+
+        /* Divider */
+        .login-divider {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 22px 0 20px;
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .login-divider::before,
+        .login-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+
+        /* Input Group */
+        .login-input-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .login-input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .login-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-input-wrap i {
+            position: absolute;
+            right: 14px;
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 1.05rem;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+
+        .login-input-pro {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            padding: 13px 44px 13px 16px;
+            outline: none;
+            transition: all 0.25s ease;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .login-input-pro::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .login-input-pro:focus {
+            border-color: rgba(255, 0, 60, 0.5);
+            background: rgba(255, 0, 60, 0.04);
+            box-shadow: 0 0 0 3px rgba(255, 0, 60, 0.08);
+        }
+
+        .login-input-pro:focus+i,
+        .login-input-wrap:focus-within i {
+            color: rgba(255, 0, 60, 0.6);
+        }
+
+        /* Error box */
+        .login-error-box {
+            background: rgba(255, 0, 60, 0.08);
+            border: 1px solid rgba(255, 0, 60, 0.25);
+            border-radius: 10px;
+            color: #ff5070;
+            font-size: 0.85rem;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        /* Submit Button */
+        .login-submit-pro {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #ff003c 0%, #c8002e 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 6px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 20px rgba(255, 0, 60, 0.3);
+            letter-spacing: 0.3px;
+        }
+
+        .login-submit-pro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(255, 0, 60, 0.45);
+        }
+
+        .login-submit-pro:active {
+            transform: translateY(0);
+        }
+
+        /* Close Button */
+        .login-close-btn {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 34px;
+            height: 34px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .login-close-btn:hover {
+            background: rgba(255, 0, 60, 0.15);
+            border-color: rgba(255, 0, 60, 0.3);
+            color: #fff;
+        }
+
+        /* Welcome Splash Screen Overlay */
+        .welcome-splash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000;
+            z-index: 999999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .welcome-splash-overlay.hidden-splash {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .welcome-splash-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            animation: pulse-zoom 2.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-zoom {
+            0% {
+                transform: scale(0.95);
+            }
+            100% {
+                transform: scale(1.02);
+            }
+        }
+    </style>
+    <script type="module" src="js/flags.js"></script>
+    <script src="js/main-init.js"></script>
+</head>
+
+<body>
+    <!-- Welcome Splash Screen (Once per session) -->
+    <div id="welcome-splash" class="welcome-splash-overlay">
+        <img src="img/splash-welcome.png" alt="Splash Screen" class="welcome-splash-img">
+    </div>
+    <script>
+        (function() {
+            const splash = document.getElementById('welcome-splash');
+            if (sessionStorage.getItem('splash_shown') === 'true') {
+                splash.style.display = 'none';
+            } else {
+                sessionStorage.setItem('splash_shown', 'true');
+                setTimeout(function() {
+                    splash.classList.add('hidden-splash');
+                    setTimeout(function() {
+                        splash.style.display = 'none';
+                    }, 800);
+                }, 3000);
+            }
+        })();
+    </script>
+    <!-- Background Effects -->
+    <div class="bg-effects">
+        <canvas id="bg-lines" class="bg-lines-canvas"></canvas>
+        <div class="cyber-grid"></div>
+        <div class="red-flare top-right"></div>
+        <div class="red-flare bottom-left"></div>
+        <div class="scanlines"></div>
+        <div class="noise"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="container top-nav">
+        <!-- AI Chat Button -->
+        <button onclick="window.location.href='ai.html'" id="ai-chat-toggle" class="ai-fab-nav" title="المساعد الذكي">
+            <div class="ai-fab-inner">
+                <i class="ph-fill ph-sparkle"></i>
+                <span>AI</span>
+            </div>
+        </button>
+
+        <div id="admin-controls">
+            <button id="nav-login-btn" class="premium-btn secondary nav-btn-small">تسجيل الدخول</button>
+            <button id="nav-dashboard-btn" class="premium-btn hidden nav-btn-small">
+                <i class="ph ph-squares-four"></i> لوحة التحكم
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content wrapper -->
+    <div id="main-view">
+        <main class="container">
+            <!-- Loading State -->
+            <div id="loader" class="loader-container">
+                <div class="loader-spinner"></div>
+                <p>جاري تحميل النظام...</p>
+            </div>
+
+            <div id="app-content" class="hidden">
+                <header class="hero" id="site-hero">
+                    <div class="hero-top-text" id="hero-top-text"></div>
+                    <!-- SWINGING LOGO BLOCK -->
+                    <div class="title-wrapper">
+                        <div class="logo-aura"></div>
+                        <h1 class="Antiko-title" data-text="ANTIKO">ANTIKO</h1>
+                    </div>
+                    <!-- END SWINGING LOGO BLOCK -->
+                    <p class="subtitle" id="hero-subtitle">نظام ذكي متكامل لإدارة الخدمات</p>
+                </header>
+
+                <!-- Mouse Follower -->
+                <div id="mouse-trailer"></div>
+
+                <!-- Main Menu Options -->
+                <div id="main-menu" class="home-grid page-view" style="display: grid;">
+                    <div class="glass-card text-center menu-card" id="open-team"
+                        onclick="window.location.href='team.html'">
+                        <div class="card-edge"></div>
+                        <div class="card-inner">
+                            <div class="menu-icon"><i class="ph-fill ph-users"></i></div>
+                            <h2 id="team-card-title">فريق العمل</h2>
+                            <p class="text-muted" id="team-card-sub">تصفح أعضاء ومطوري الفريق</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card text-center menu-card" id="open-store"
+                        onclick="window.location.href='store.html'">
+                        <div class="card-edge"></div>
+                        <div class="card-inner">
+                            <div class="menu-icon"><i class="ph-fill ph-storefront"></i></div>
+                            <h2 id="store-card-title">المتجر</h2>
+                            <p class="text-muted" id="store-card-sub">تصفح الخدمات وباقات الشحن المتاحة</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card text-center menu-card hidden" id="open-dashboard"
+                        onclick="window.location.href='dashboard.html'">
+                        <div class="card-edge"></div>
+                        <div class="card-inner">
+                            <div class="menu-icon"><i class="ph-fill ph-squares-four"></i></div>
+                            <h2 id="dashboard-card-title">لوحة التحكم</h2>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==============================================
+         PRIVACY POLICY MODAL
+    =============================================== -->
+    <div id="privacy-policy-modal" class="modal-overlay hidden" style="z-index: 3000;">
+        <div class="modal" style="max-width: 450px; padding: 30px;">
+            <div class="text-center mb-4">
+                <h2 style="font-size: 1.5rem; color: #fff; margin-bottom: 15px; border: none; padding: 0;">سياسة
+                    الخصوصية</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">يرجى مراجعة السياسة قبل المتابعة</p>
+            </div>
+
+            <div id="privacy-content"
+                style="max-height: 280px; overflow-y: auto; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px; margin-bottom: 25px; font-size: 0.9rem; line-height: 1.7; color: #bbb; text-align: right; border: 1px solid rgba(255,255,255,0.05); scrollbar-width: thin; scrollbar-color: var(--neon-red) transparent;">
+                <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 10px;">1. البيانات التي نجمعها</h3>
+                <p>نجمع بريدك الإلكتروني واسمك عند التسجيل لتأمين حسابك ومشترياتك.</p>
+                <h3 style="color: #fff; font-size: 1.1rem; margin-top: 20px; margin-bottom: 10px;">2. كيف نستخدم
+                    بياناتك؟</h3>
+                <p>تستخدم البيانات لإدارة حسابك وتوفير دعم التذاكر الفني المباشر.</p>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px; cursor: pointer; user-select: none; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 12px;"
+                id="agree-container">
+                <div id="agree-checkbox"
+                    style="width: 24px; height: 24px; border: 2px solid var(--neon-red); border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; background: transparent;">
+                    <i class="ph-fill ph-check hidden" style="color: #fff; font-size: 16px;"></i>
+                </div>
+                <span style="font-size: 0.95rem; color: #fff; font-weight: 600;">نعم، أنا أوافق على كافة الشروط</span>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button id="privacy-cancel-btn" class="premium-btn secondary"
+                    style="flex: 1; padding: 12px;">إلغاء</button>
+                <button id="privacy-next-btn" class="premium-btn disabled"
+                    style="flex: 2; padding: 12px; opacity: 0.5; pointer-events: none; filter: grayscale(1);">
+                    <span>التالي</span> <i class="ph ph-caret-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================
+         ADMIN MODAL (LOGIN) — PREMIUM REDESIGN
+    =============================================== -->
+    <div id="login-modal" class="modal-overlay hidden">
+        <div class="login-card">
+
+            <!-- Close Button -->
+            <button class="login-close-btn" onclick="closeModal('login-modal')">
+                <i class="ph ph-x"></i>
+            </button>
+
+            <!-- Header -->
+            <div class="login-card-header">
+                <div class="login-logo-icon">
+                    <i class="ph-fill ph-lightning"></i>
+                </div>
+                <h2 id="auth-modal-title">تسجيل الدخول</h2>
+                <p id="auth-modal-subtitle">أدخل بياناتك للوصول إلى حسابك</p>
+            </div>
+
+            <!-- Body -->
+            <div class="login-card-body">
+
+                <!-- Google Sign-In -->
+                <button id="google-login-btn" class="google-login-btn-pro">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20"
+                        alt="Google">
+                    <span>متابعة باستخدام جوجل</span>
+                </button>
+
+                <!-- Divider -->
+                <div class="login-divider">
+                    <span id="auth-divider-text">أو بالبريد الإلكتروني</span>
+                </div>
+
+                <!-- Form -->
+                <form id="login-form" autocomplete="on">
+                    <div id="login-error" class="login-error-box hidden"></div>
+
+                    <div class="login-input-group">
+                        <label for="admin-email">البريد الإلكتروني</label>
+                        <div class="login-input-wrap">
+                            <input type="email" id="admin-email" class="login-input-pro" required dir="ltr"
+                                placeholder="example@mail.com" autocomplete="email">
+                            <i class="ph ph-envelope"></i>
+                        </div>
+                    </div>
+
+                    <div class="login-input-group">
+                        <label for="admin-password">كلمة المرور</label>
+                        <div class="login-input-wrap">
+                            <input type="password" id="admin-password" class="login-input-pro" required dir="ltr"
+                                placeholder="••••••••" autocomplete="current-password">
+                            <i class="ph ph-lock"></i>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="login-submit-pro" id="login-submit-btn">
+                        <i class="ph ph-sign-in"></i>
+                        <span id="auth-submit-text">دخول النظام</span>
+                    </button>
+                </form>
+
+                <!-- Toggle Login / Register -->
+                <div style="text-align: center; margin-top: 20px; font-size: 0.88rem; color: rgba(255,255,255,0.35);">
+                    <span id="auth-toggle-msg">ليس لديك حساب؟</span>
+                    <a href="#" id="auth-toggle-btn"
+                        style="color: rgba(255,0,60,0.85); font-weight: 700; text-decoration: none; margin-right: 6px; transition: color 0.2s;"
+                        onmouseover="this.style.color='#ff003c'"
+                        onmouseout="this.style.color='rgba(255,0,60,0.85)'">إنشاء حساب</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================
+         ADMIN MODAL (ACCOUNT)
+    =============================================== -->
+    <div id="account-modal" class="modal-overlay hidden" style="z-index: 2000;">
+        <div class="modal" style="max-width: 400px; padding: 40px; text-align: center;">
+            <button class="modal-close" onclick="closeModal('account-modal')"><i class="ph ph-x"></i></button>
+
+            <div style="margin-bottom: 20px;">
+                <i class="ph-fill ph-user-circle"
+                    style="font-size: 5rem; color: var(--neon-red); filter: drop-shadow(0 0 10px rgba(255,0,60,0.5));"></i>
+            </div>
+            <h2 style="font-size: 1.5rem; color: #fff; margin-bottom: 5px;">حسابي</h2>
+            <p id="account-email"
+                style="color: var(--text-secondary); margin-bottom: 30px; font-size: 1.1rem; direction: ltr;">-</p>
+
+            <button id="modal-dashboard-btn" class="premium-btn w-100 hidden" style="margin-bottom: 20px;">
+                <i class="ph ph-squares-four"></i> لوحة التحكم
+            </button>
+            <button id="modal-logout-btn" class="premium-btn w-100"
+                style="background: rgba(255,0,60,0.1); border-color: var(--neon-red); color: var(--neon-red);">
+                <i class="ph ph-sign-out"></i> تسجيل الخروج
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <div class="bottom-nav-item active" onclick="window.location.href='index.html'">
+            <i class="ph-fill ph-house"></i>
+            <span>الرئيسية</span>
+        </div>
+        <div class="bottom-nav-item" onclick="window.location.href='ai.html'">
+            <i class="ph-fill ph-sparkle"></i>
+            <span>المساعد</span>
+        </div>
+        <div class="bottom-nav-item" id="bottom-nav-account" onclick="handleBottomNavAccount()">
+            <i class="ph-fill ph-user-circle"></i>
+            <span>حسابي</span>
+        </div>
+        <div class="bottom-nav-item" onclick="window.location.href='support.html'">
+            <i class="ph-fill ph-headset"></i>
+            <span>الدعم</span>
+        </div>
+        <div class="bottom-nav-item" onclick="window.location.href='settings.html'">
+            <i class="ph-fill ph-gear"></i>
+            <span>الإعدادات</span>
+        </div>
+    </nav>
+
+    <script src="capacitor.js"></script>
+    <script type="module" src="js/app.js?v=2.0.6"></script>
+    <script src="js/animations.js?v=2.0.6"></script>
+
+</body>
+
+</html>

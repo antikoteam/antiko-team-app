@@ -21,7 +21,15 @@ export const state = {
         maintenanceMode: false
     },
     sounds: {
-        bg: new Audio('assets/audio/bg.mp3')
+        bg: (window.top !== window.self) ? {
+            play: () => Promise.resolve(),
+            pause: () => {},
+            load: () => {},
+            addEventListener: () => {},
+            removeEventListener: () => {},
+            volume: 0,
+            currentTime: 0
+        } : new Audio('assets/audio/bg.mp3')
     },
     appSettings: JSON.parse(localStorage.getItem('antiko_settings')) || {
         musicEnabled: true,

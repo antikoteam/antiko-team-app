@@ -29,9 +29,7 @@
         </provider>
 
         <!-- FCM Background Notification Service -->
-        <service
-            android:name=".AntikoMessagingService"
-            android:exported="false">
+        <service android:name=".AntikoMessagingService" android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
@@ -40,7 +38,8 @@
         <!-- FCM Default Notification Channel -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="antiko_notifications" />
+            android:value="antiko_notifications"
+        />
     </application>
 
     <!-- Permissions -->

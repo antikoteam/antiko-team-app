@@ -7,6 +7,7 @@ window.playSound = function (type) {
 };
 
 export const updateBgMusic = () => {
+    if (window.top !== window.self) return; // Exit if inside iframe!
     if (!state.sounds.bg) return;
     
     // Apply Volume
@@ -31,6 +32,7 @@ export const updateBgMusic = () => {
 };
 
 const pauseAudioGlobally = () => {
+    if (window.top !== window.self) return; // Exit if inside iframe!
     console.log("Antiko Audio: Pausing all audio (app hidden/minimized)");
     Object.values(state.sounds).forEach(s => {
         if (s && typeof s.pause === 'function') s.pause();
@@ -38,6 +40,7 @@ const pauseAudioGlobally = () => {
 };
 
 const resumeAudioGlobally = () => {
+    if (window.top !== window.self) return; // Exit if inside iframe!
     console.log("Antiko Audio: Resuming audio (app visible)");
     if (state.appSettings.musicEnabled && state.sounds.bg) {
         state.sounds.bg.play().catch(() => { });
@@ -120,11 +123,51 @@ window.addEventListener("pageshow", () => {
     resumeAudioGlobally();
 });
 
+// --- Restore Background Music Time across page navigation ---
+const restoreBgMusicTime = () => {
+    if (window.top !== window.self) return; // Exit if inside iframe!
+    if (!state.sounds.bg) return;
+    const savedTime = sessionStorage.getItem('bg_music_time');
+    if (savedTime) {
+        const time = parseFloat(savedTime);
+        if (!isNaN(time) && isFinite(time)) {
+            const setTimeSafely = () => {
+                try {
+                    state.sounds.bg.currentTime = time;
+                } catch (e) {
+                    console.warn("[Antiko Audio] Failed to set currentTime directly:", e);
+                }
+            };
+            
+            setTimeSafely();
+            state.sounds.bg.addEventListener('loadedmetadata', setTimeSafely, { once: true });
+        }
+    }
+    
+    // Save playback position periodically
+    state.sounds.bg.addEventListener('timeupdate', () => {
+        if (state.sounds.bg && !state.sounds.bg.paused) {
+            sessionStorage.setItem('bg_music_time', state.sounds.bg.currentTime.toString());
+        }
+    });
+
+    const saveTimeOnUnload = () => {
+        if (state.sounds.bg) {
+            sessionStorage.setItem('bg_music_time', state.sounds.bg.currentTime.toString());
+        }
+    };
+    window.addEventListener('beforeunload', saveTimeOnUnload);
+    window.addEventListener('pagehide', saveTimeOnUnload);
+};
+
+restoreBgMusicTime();
+
 // Try starting on load (blocking possible)
 updateBgMusic();
 
 // Interaction fallback
 const initMusicOnInteraction = () => {
+    if (window.top !== window.self) return; // Exit if inside iframe!
     if (state.appSettings.musicEnabled) {
         updateBgMusic();
     }
