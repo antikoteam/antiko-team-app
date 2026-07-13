@@ -219,28 +219,14 @@ const initUINavListeners = () => {
     });
 };
 
-const hideNotificationsToggle = () => {
-    const triggerNotiBtn = document.getElementById('trigger-notifications-btn');
-    if (triggerNotiBtn) {
-        const parentFormGroup = triggerNotiBtn.closest('.form-group');
-        if (parentFormGroup) {
-            parentFormGroup.style.display = 'none';
-        } else {
-            triggerNotiBtn.style.display = 'none';
-        }
-    }
-};
-
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initMouseTrailer();
         initUINavListeners();
-        hideNotificationsToggle();
     });
 } else {
     initMouseTrailer();
     initUINavListeners();
-    hideNotificationsToggle();
 }
 
 // Expose globals
