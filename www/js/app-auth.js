@@ -25,6 +25,13 @@ const getElements = () => ({
 
 let hasAgreed = false;
 
+const getCapacitor = () => {
+    if (window.Capacitor) return window.Capacitor;
+    if (window.parent && window.parent.Capacitor) return window.parent.Capacitor;
+    if (window.top && window.top.Capacitor) return window.top.Capacitor;
+    return null;
+};
+
 export const openPrivacyModal = () => {
     const els = getElements();
     if (!els.privacyModal) {
@@ -189,9 +196,10 @@ const initAuthListeners = () => {
         els.modalLogoutBtn.addEventListener('click', async () => {
             sessionStorage.setItem('antiko_signed_out', 'true');
             try {
-                if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-                    if (window.Capacitor.Plugins && window.Capacitor.Plugins.FirebaseAuthentication) {
-                        await window.Capacitor.Plugins.FirebaseAuthentication.signOut();
+                const cap = getCapacitor();
+                if (cap && cap.isNativePlatform && cap.isNativePlatform()) {
+                    if (cap.Plugins && cap.Plugins.FirebaseAuthentication) {
+                        await cap.Plugins.FirebaseAuthentication.signOut();
                     }
                 }
                 await signOut(auth);
@@ -250,22 +258,29 @@ const initAuthListeners = () => {
             googleLoginBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> جاري تسجيل الدخول...';
             googleLoginBtn.disabled = true;
 
-            // ✅ استخدام Capacitor.isNativePlatform() الصحيح
-            const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+            const cap = getCapacitor();
+            const hasCap = !!cap;
+            const hasPlugin = !!(cap && cap.Plugins && cap.Plugins.FirebaseAuthentication);
+            const isNative = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
+
+            alert(`DEBUG INFO:\n- hasCapacitor: ${hasCap}\n- hasPlugin: ${hasPlugin}\n- isNative: ${isNative}`);
 
             try {
-                if (isNative && window.Capacitor.Plugins && window.Capacitor.Plugins.FirebaseAuthentication) {
-                    // useCredentialManager: false يجبر استخدام Google Sign-In القديم بدل Credential Manager
-                    const signInPromise = window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle({
+                if (isNative && hasPlugin) {
+                    alert("بدء تشغيل Native Google Sign-In...");
+                    // useCredentialManager: true للتوافق مع أندرويد الحديث و targetSdk 36
+                    const signInPromise = cap.Plugins.FirebaseAuthentication.signInWithGoogle({
                         skipNativeAuth: true,
-                        useCredentialManager: false
+                        useCredentialManager: true
                     });
                     const timeoutPromise = new Promise((_, reject) =>
                         setTimeout(() => reject(new Error('TIMEOUT')), 60000)
                     );
                     const result = await Promise.race([signInPromise, timeoutPromise]);
+                    alert("تم الحصول على الاستجابة من جوجل!");
 
                     if (result && result.credential && result.credential.idToken) {
+                        alert("تم الحصول على الـ idToken بنجاح!");
                         const credential = GoogleAuthProvider.credential(result.credential.idToken);
                         await signInWithCredential(auth, credential);
                         const currentEls = getElements();
@@ -275,6 +290,7 @@ const initAuthListeners = () => {
                         throw new Error('NO_CREDENTIAL');
                     }
                 } else {
+                    alert("بدء تشغيل Web Google Sign-In (Popup)...");
                     // web: استخدام popup
                     await signInWithPopup(auth, googleProvider);
                     const currentEls = getElements();
@@ -301,8 +317,11 @@ const initAuthListeners = () => {
                     } else if (errorStr.includes('network')) {
                         errorMsg = "خطأ في الاتصال. يرجى التحقق من الإنترنت.";
                     }
-                    showError(errorMsg);
-                    if (typeof window.showToast === 'function') window.showToast(errorMsg, 'error');
+                    const detail = error.message || error.code || String(error);
+                    const finalMsg = `${errorMsg} (${detail})`;
+                    alert(`خطأ تسجيل الدخول بجوجل:\n${finalMsg}`);
+                    showError(finalMsg);
+                    if (typeof window.showToast === 'function') window.showToast(finalMsg, 'error');
                 }
             } finally {
                 // ✅ الزر يرجع دايماً حتى لو cancel
