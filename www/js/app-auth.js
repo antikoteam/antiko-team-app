@@ -250,51 +250,62 @@ const initAuthListeners = () => {
             googleLoginBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> جاري تسجيل الدخول...';
             googleLoginBtn.disabled = true;
 
-            const isNative = window.isNativePlatform ? window.isNativePlatform() : false;
+            // ✅ استخدام Capacitor.isNativePlatform() الصحيح
+            const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 
             try {
                 if (isNative && window.Capacitor.Plugins && window.Capacitor.Plugins.FirebaseAuthentication) {
-                    const result = await window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle({
+                    // useCredentialManager: false يجبر استخدام Google Sign-In القديم بدل Credential Manager
+                    const signInPromise = window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle({
                         skipNativeAuth: true,
                         useCredentialManager: false
                     });
+                    const timeoutPromise = new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('TIMEOUT')), 60000)
+                    );
+                    const result = await Promise.race([signInPromise, timeoutPromise]);
 
                     if (result && result.credential && result.credential.idToken) {
                         const credential = GoogleAuthProvider.credential(result.credential.idToken);
                         await signInWithCredential(auth, credential);
-                        els.loginModal.classList.add('hidden');
+                        const currentEls = getElements();
+                        if (currentEls.loginModal) currentEls.loginModal.classList.add('hidden');
                         if (typeof window.showToast === 'function') window.showToast("تم تسجيل الدخول بنجاح");
                     } else {
                         throw new Error('NO_CREDENTIAL');
                     }
                 } else {
+                    // web: استخدام popup
                     await signInWithPopup(auth, googleProvider);
-                    els.loginModal.classList.add('hidden');
+                    const currentEls = getElements();
+                    if (currentEls.loginModal) currentEls.loginModal.classList.add('hidden');
                     if (typeof window.showToast === 'function') window.showToast("تم تسجيل الدخول بنجاح");
                 }
             } catch (error) {
                 console.error("Google login error:", error);
                 const errorStr = String(error.message || error.code || error || '').toLowerCase();
-                if (error.code === 'auth/popup-closed-by-user' ||
+                const isCancelled = error.code === 'auth/popup-closed-by-user' ||
                     errorStr.includes('cancel') ||
                     errorStr.includes('user_cancel') ||
                     errorStr.includes('sign_in_cancelled') ||
                     errorStr.includes('popup-closed') ||
                     errorStr.includes('12501') ||
-                    errorStr.includes('closed-by-user')) {
-                    return;
-                }
+                    errorStr.includes('closed-by-user');
 
-                let errorMsg = "حدث خطأ أثناء تسجيل الدخول بجوجل";
-                if (errorStr.includes('not_initialized') || errorStr.includes('not initialized')) {
-                    errorMsg = "مشكلة في إعدادات النظام. يرجى مراجعة المدير.";
-                } else if (errorStr.includes('network') || errorStr.includes('timeout')) {
-                    errorMsg = "خطأ في الاتصال. يرجى التحقق من الإنترنت.";
+                if (!isCancelled) {
+                    let errorMsg = "حدث خطأ أثناء تسجيل الدخول بجوجل";
+                    if (errorStr.includes('timeout')) {
+                        errorMsg = "انتهت مهلة تسجيل الدخول، حاول مجدداً.";
+                    } else if (errorStr.includes('not_initialized') || errorStr.includes('not initialized')) {
+                        errorMsg = "مشكلة في إعدادات النظام. يرجى مراجعة المدير.";
+                    } else if (errorStr.includes('network')) {
+                        errorMsg = "خطأ في الاتصال. يرجى التحقق من الإنترنت.";
+                    }
+                    showError(errorMsg);
+                    if (typeof window.showToast === 'function') window.showToast(errorMsg, 'error');
                 }
-
-                showError(errorMsg);
-                if (typeof window.showToast === 'function') window.showToast(errorMsg, 'error');
             } finally {
+                // ✅ الزر يرجع دايماً حتى لو cancel
                 googleLoginBtn.innerHTML = originalText;
                 googleLoginBtn.disabled = false;
             }
