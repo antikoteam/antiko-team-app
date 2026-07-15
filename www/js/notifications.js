@@ -1,14 +1,21 @@
 import { db } from "./firebase-config.js";
 import { collection, getDocs, doc, setDoc } from "./firebase-config.js";
 
-// Safe Native Platform Check
+// Safe Native Platform Check - يشمل الـ Parent Frame
+function getCapacitorBridge() {
+    if (window.Capacitor) return window.Capacitor;
+    if (window.parent && window.parent.Capacitor) return window.parent.Capacitor;
+    if (window.top && window.top.Capacitor) return window.top.Capacitor;
+    return null;
+}
+
 export function isNativePlatform() {
-    const cap = window.Capacitor;
+    const cap = getCapacitorBridge();
     if (!cap) return false;
     if (typeof cap.getPlatform === 'function') {
         return cap.getPlatform() !== 'web';
     }
-    return cap.isNativePlatform === true;
+    return typeof cap.isNativePlatform === 'function' ? cap.isNativePlatform() : false;
 }
 window.isNativePlatform = isNativePlatform;
 
@@ -73,7 +80,7 @@ export async function notifyAdmins(title, body) {
     } catch(e) { console.warn("notifyAdmins error:", e); }
 }
 
-// Native Notification Helper (displays notification locally)
+// Native Notification Helper - يستخدم postMessage bridge لضمان الوصول للـ Native Layer
 export function sendNativeNotification(title, body) {
     try {
         const settings = JSON.parse(localStorage.getItem('antiko_settings')) || {};
@@ -81,33 +88,12 @@ export function sendNativeNotification(title, body) {
     } catch(e) {}
 
     const isNative = isNativePlatform();
-    const cap = window.Capacitor;
 
-    if (isNative && cap) {
-        // Method 1: Direct access via Capacitor.Plugins (auto-registered from Java)
-        try {
-            const plugin = cap.Plugins && cap.Plugins.LocalNotify;
-            if (plugin && typeof plugin.show === 'function') {
-                plugin.show({ title, body });
-                return;
-            }
-        } catch(e) { console.warn('LocalNotify direct failed:', e); }
-
-        // Method 2: Capacitor nativeCallback (direct bridge call)
-        try {
-            if (typeof cap.nativeCallback === 'function') {
-                cap.nativeCallback('LocalNotify', 'show', { title, body }, () => {});
-                return;
-            }
-        } catch(e) { console.warn('LocalNotify nativeCallback failed:', e); }
-
-        // Method 3: Capacitor nativePromise (direct bridge promise)
-        try {
-            if (typeof cap.nativePromise === 'function') {
-                cap.nativePromise('LocalNotify', 'show', { title, body });
-                return;
-            }
-        } catch(e) { console.warn('LocalNotify nativePromise failed:', e); }
+    if (isNative) {
+        // ✅ استخدام postMessage bridge للـ Parent Frame
+        const target = window.parent !== window ? window.parent : window;
+        target.postMessage({ type: 'ANTIKO_SHOW_NOTIFICATION', title, body }, '*');
+        return;
     }
 
     // Web fallback: use Web Notification API
@@ -123,66 +109,44 @@ export function sendNativeNotification(title, body) {
 }
 window.sendNativeNotification = sendNativeNotification;
 
-// Setup user notifications (grabs FCM Token and saves to Firestore)
+// Setup user notifications - يستخدم postMessage bridge للحصول على FCM Token
 export function setupUserNotifications(user) {
     if (!user) return;
     const isNative = isNativePlatform();
-    if (isNative && window.Capacitor) {
-        const cap = window.Capacitor;
-        const plugins = cap.Plugins || {};
+    if (!isNative) return;
 
-        console.log("Available Capacitor plugins:", Object.keys(plugins).join(', '));
+    const saveToken = (token) => {
+        if (!token) return;
+        console.log("Saving FCM token:", token.substring(0, 20) + "...");
+        setDoc(doc(db, "users", user.uid), {
+            fcmToken: token,
+            email: user.email || ""
+        }, { merge: true }).then(() => {
+            console.log("FCM Token saved to Firestore OK.");
+        }).catch(err => {
+            console.error("Error saving token:", err);
+        });
+    };
 
-        const saveToken = (token) => {
-            if (!token) return;
-            console.log("Saving FCM token:", token.substring(0, 20) + "...");
-            setDoc(doc(db, "users", user.uid), {
-                fcmToken: token,
-                email: user.email || ""
-            }, { merge: true }).then(() => {
-                console.log("FCM Token saved to Firestore OK.");
-                if (typeof window.showToast === 'function') window.showToast("🔔 تم تفعيل الإشعارات بنجاح!");
-            }).catch(err => {
-                console.error("Error saving token:", err);
-                if (typeof window.showToast === 'function') window.showToast("خطأ في حفظ التوكن: " + err.message, "error");
-            });
-        };
+    // طلب FCM Token عبر postMessage bridge (لأن الـ Plugin Promises تعلق في الـ iframe)
+    const target = window.parent !== window ? window.parent : window;
 
-        // Try getting FCM Token
-        const localNotify = plugins.LocalNotify;
-        if (localNotify && typeof localNotify.getFcmToken === 'function') {
-            localNotify.getFcmToken().then(res => {
-                if (res && res.token) {
-                    saveToken(res.token);
-                } else {
-                    console.warn("LocalNotify getFcmToken returned empty:", res);
-                }
-            }).catch(err => {
-                console.error("LocalNotify FCM error:", err);
-            });
-        } else if (plugins.FirebaseMessaging && typeof plugins.FirebaseMessaging.getToken === 'function') {
-            plugins.FirebaseMessaging.getToken().then(res => {
-                if (res && res.token) {
-                    saveToken(res.token);
-                } else {
-                    console.warn("FirebaseMessaging.getToken empty:", res);
-                }
-            }).catch(err => {
-                console.error("FirebaseMessaging error:", err);
-            });
+    const timer = setTimeout(() => {
+        window.removeEventListener('message', tokenHandler);
+        console.warn('FCM token request timed out');
+    }, 15000);
+
+    function tokenHandler(event) {
+        if (!event.data || event.data.type !== 'ANTIKO_FCM_TOKEN_RESULT') return;
+        clearTimeout(timer);
+        window.removeEventListener('message', tokenHandler);
+        if (event.data.token) {
+            saveToken(event.data.token);
         } else {
-            try {
-                const manualPlugin = cap.registerPlugin ? cap.registerPlugin('LocalNotify') : null;
-                if (manualPlugin && typeof manualPlugin.getFcmToken === 'function') {
-                    manualPlugin.getFcmToken().then(res => {
-                        if (res && res.token) saveToken(res.token);
-                    }).catch(err => {
-                        console.error("manualPlugin error:", err);
-                    });
-                }
-            } catch(e) {
-                console.error("registerPlugin error:", e);
-            }
+            console.warn('No FCM token returned:', event.data.error);
         }
     }
+
+    window.addEventListener('message', tokenHandler);
+    target.postMessage({ type: 'ANTIKO_GET_FCM_TOKEN' }, '*');
 }

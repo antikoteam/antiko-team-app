@@ -197,19 +197,16 @@ const initAuthListeners = () => {
         els.modalLogoutBtn.addEventListener('click', async () => {
             sessionStorage.setItem('antiko_signed_out', 'true');
             try {
-                const cap = getCapacitor();
-                if (cap && cap.isNativePlatform && cap.isNativePlatform()) {
-                    if (cap.Plugins && cap.Plugins.FirebaseAuthentication) {
-                        await cap.Plugins.FirebaseAuthentication.signOut();
-                    }
-                }
+                // ✅ نستخدم Web SDK فقط لأننا skipNativeAuth:true (مفيش Native Session)
                 await signOut(auth);
-                els.accountModal.classList.add('hidden');
+                const currentEls = getElements();
+                if (currentEls.accountModal) currentEls.accountModal.classList.add('hidden');
                 if (typeof window.showToast === 'function') window.showToast("تم تسجيل الخروج بنجاح");
             } catch (e) {
                 console.error('Logout error:', e);
                 signOut(auth).catch(() => { });
-                els.accountModal.classList.add('hidden');
+                const currentEls = getElements();
+                if (currentEls.accountModal) currentEls.accountModal.classList.add('hidden');
             }
         });
     }
@@ -261,18 +258,37 @@ const initAuthListeners = () => {
 
             const cap = getCapacitor();
             const isNative = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
-            const hasPlugin = !!(cap && cap.Plugins && cap.Plugins.FirebaseAuthentication);
 
             try {
-                if (isNative && hasPlugin) {
-                    // useCredentialManager: true للتوافق مع أندرويد الحديث و targetSdk 36
-                    const result = await cap.Plugins.FirebaseAuthentication.signInWithGoogle({
-                        skipNativeAuth: true,
-                        useCredentialManager: true
+                if (isNative) {
+                    // ✅ الحل الجذري: نطلب من الـ Parent Frame (index.html) تشغيل الـ plugin
+                    // لأن الـ Native Bridge موجود في الـ Parent وليس في الـ iframe
+                    const nativeResult = await new Promise((resolve, reject) => {
+                        const timer = setTimeout(() => {
+                            window.removeEventListener('message', handler);
+                            reject(new Error('TIMEOUT'));
+                        }, 60000);
+
+                        function handler(event) {
+                            if (!event.data) return;
+                            if (event.data.type === 'ANTIKO_GOOGLE_SIGNIN_RESULT') {
+                                clearTimeout(timer);
+                                window.removeEventListener('message', handler);
+                                resolve(event.data.result);
+                            } else if (event.data.type === 'ANTIKO_GOOGLE_SIGNIN_ERROR') {
+                                clearTimeout(timer);
+                                window.removeEventListener('message', handler);
+                                reject(event.data.error);
+                            }
+                        }
+
+                        window.addEventListener('message', handler);
+                        // إرسال الطلب للـ Parent Frame
+                        (window.parent !== window ? window.parent : window).postMessage({ type: 'ANTIKO_GOOGLE_SIGNIN' }, '*');
                     });
 
-                    if (result && result.credential && result.credential.idToken) {
-                        const credential = GoogleAuthProvider.credential(result.credential.idToken);
+                    if (nativeResult && nativeResult.credential && nativeResult.credential.idToken) {
+                        const credential = GoogleAuthProvider.credential(nativeResult.credential.idToken);
                         await signInWithCredential(auth, credential);
                         const currentEls = getElements();
                         if (currentEls.loginModal) currentEls.loginModal.classList.add('hidden');

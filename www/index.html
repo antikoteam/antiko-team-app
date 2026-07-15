@@ -158,6 +158,58 @@
                 }
             })();
         })();
+
+            // ✅ Google Sign-In Bridge: الـ plugin يُستدعى من هنا (الـ Parent Frame الحقيقي)
+            window.addEventListener('message', async function(event) {
+                if (!event.data) return;
+                var src = event.source;
+
+                // ✅ Google Sign-In Bridge
+                if (event.data.type === 'ANTIKO_GOOGLE_SIGNIN') {
+                    try {
+                        if (!window.Capacitor || !window.Capacitor.Plugins || !window.Capacitor.Plugins.FirebaseAuthentication) {
+                            throw new Error('PLUGIN_NOT_FOUND');
+                        }
+                        var result = await window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle({
+                            skipNativeAuth: true,
+                            useCredentialManager: false
+                        });
+                        src.postMessage({ type: 'ANTIKO_GOOGLE_SIGNIN_RESULT', result: result }, '*');
+                    } catch(err) {
+                        src.postMessage({
+                            type: 'ANTIKO_GOOGLE_SIGNIN_ERROR',
+                            error: { message: err.message || String(err), code: err.code || '' }
+                        }, '*');
+                    }
+                }
+
+                // ✅ FCM Token Bridge
+                if (event.data.type === 'ANTIKO_GET_FCM_TOKEN') {
+                    try {
+                        var cap = window.Capacitor;
+                        var plugin = cap && cap.Plugins && cap.Plugins.LocalNotify;
+                        if (plugin && typeof plugin.getFcmToken === 'function') {
+                            var res = await plugin.getFcmToken();
+                            src.postMessage({ type: 'ANTIKO_FCM_TOKEN_RESULT', token: res && res.token }, '*');
+                        } else {
+                            src.postMessage({ type: 'ANTIKO_FCM_TOKEN_RESULT', token: null }, '*');
+                        }
+                    } catch(err) {
+                        src.postMessage({ type: 'ANTIKO_FCM_TOKEN_RESULT', token: null, error: err.message }, '*');
+                    }
+                }
+
+                // ✅ Local Notification Bridge
+                if (event.data.type === 'ANTIKO_SHOW_NOTIFICATION') {
+                    try {
+                        var cap = window.Capacitor;
+                        var plugin = cap && cap.Plugins && cap.Plugins.LocalNotify;
+                        if (plugin && typeof plugin.show === 'function') {
+                            plugin.show({ title: event.data.title, body: event.data.body });
+                        }
+                    } catch(e) { console.warn('LocalNotify show failed:', e); }
+                }
+            });
     </script>
 </body>
 </html>

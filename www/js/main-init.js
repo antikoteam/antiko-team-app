@@ -1,18 +1,3 @@
-// Global Error Handlers for Native Debugging
-window.onerror = function (msg, url, line, col, error) {
-    const errorMsg = `GLOBAL ERROR:\n${msg}\nURL: ${url}\nLine: ${line}, Col: ${col}\nError object: ${error ? (error.message || JSON.stringify(error)) : 'null'}`;
-    console.error(errorMsg);
-    alert(errorMsg);
-    return false;
-};
-
-window.onunhandledrejection = function (event) {
-    const reasonMsg = event.reason ? (event.reason.message || event.reason.code || JSON.stringify(event.reason)) : 'unknown';
-    const errorMsg = `UNHANDLED REJECTION:\nReason: ${reasonMsg}`;
-    console.error(errorMsg);
-    alert(errorMsg);
-};
-
 // Modal helpers
 function openModal(id) {
     console.log("Opening modal:", id);

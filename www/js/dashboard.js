@@ -1,12 +1,12 @@
 import { auth, db, onAuthStateChanged, collection, getDocs, getDoc, doc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, onSnapshot, where, writeBatch } from "./firebase-config.js";
 
 window.isNativePlatform = function() {
-    const cap = window.Capacitor;
+    const cap = window.Capacitor || (window.parent && window.parent.Capacitor) || (window.top && window.top.Capacitor);
     if (!cap) return false;
     if (typeof cap.getPlatform === 'function') {
         return cap.getPlatform() !== 'web';
     }
-    return cap.isNativePlatform === true;
+    return typeof cap.isNativePlatform === 'function' ? cap.isNativePlatform() : false;
 };
 // --- FCM V1 Configuration and Helper Functions ---
 const serviceAccount = {
@@ -224,34 +224,13 @@ window.sendNativeNotification = function(title, body) {
         if (settings.notificationsEnabled === false) return;
     } catch(e) {}
 
-    const isNative = window.isNativePlatform();
-    const cap = window.Capacitor;
+    const isNative = typeof window.isNativePlatform === 'function' ? window.isNativePlatform() : false;
 
-    if (isNative && cap) {
-        // Method 1: Direct access via Capacitor.Plugins (auto-registered from Java)
-        try {
-            const plugin = cap.Plugins && cap.Plugins.LocalNotify;
-            if (plugin && typeof plugin.show === 'function') {
-                plugin.show({ title, body });
-                return;
-            }
-        } catch(e) { console.warn('LocalNotify direct failed:', e); }
-
-        // Method 2: Capacitor nativeCallback (direct bridge call)
-        try {
-            if (typeof cap.nativeCallback === 'function') {
-                cap.nativeCallback('LocalNotify', 'show', { title, body }, () => {});
-                return;
-            }
-        } catch(e) { console.warn('LocalNotify nativeCallback failed:', e); }
-
-        // Method 3: Capacitor nativePromise (direct bridge promise)
-        try {
-            if (typeof cap.nativePromise === 'function') {
-                cap.nativePromise('LocalNotify', 'show', { title, body });
-                return;
-            }
-        } catch(e) { console.warn('LocalNotify nativePromise failed:', e); }
+    if (isNative) {
+        // ✅ استخدام postMessage لإرسال الإشعار من خلال الـ Parent Frame
+        const target = window.parent !== window ? window.parent : window;
+        target.postMessage({ type: 'ANTIKO_SHOW_NOTIFICATION', title, body }, '*');
+        return;
     }
 
     // Web fallback: use Web Notification API
@@ -261,7 +240,9 @@ window.sendNativeNotification = function(title, body) {
     }
 
     // Last resort: in-app toast
-    if (typeof window.showToast === 'function') window.showToast(`🔔 ${title}: ${body}`, 'success');
+    if (typeof window.showToast === 'function') {
+        window.showToast(`🔔 ${title}: ${body}`, 'success');
+    }
 };
 
 window.openModal = function (id) {
