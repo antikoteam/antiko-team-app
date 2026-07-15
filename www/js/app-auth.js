@@ -1,3 +1,4 @@
+
 import { db, auth, googleProvider, GoogleAuthProvider, signInWithCredential, signInWithPopup, getRedirectResult, collection, getDocs, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "./firebase-config.js";
 import { state } from "./app-state.js";
 import { setupUserNotifications } from "./notifications.js";
@@ -40,11 +41,11 @@ export const openPrivacyModal = () => {
     }
     els.privacyModal.classList.remove('hidden');
     hasAgreed = false;
-    
+
     if (els.agreeCheckbox && els.agreeCheckbox.querySelector('i')) {
         els.agreeCheckbox.querySelector('i').classList.add('hidden');
     }
-    
+
     if (els.privacyNextBtn) {
         els.privacyNextBtn.classList.add('disabled');
         els.privacyNextBtn.style.opacity = '0.5';
@@ -207,7 +208,7 @@ const initAuthListeners = () => {
                 if (typeof window.showToast === 'function') window.showToast("تم تسجيل الخروج بنجاح");
             } catch (e) {
                 console.error('Logout error:', e);
-                signOut(auth).catch(() => {});
+                signOut(auth).catch(() => { });
                 els.accountModal.classList.add('hidden');
             }
         });
@@ -259,28 +260,18 @@ const initAuthListeners = () => {
             googleLoginBtn.disabled = true;
 
             const cap = getCapacitor();
-            const hasCap = !!cap;
-            const hasPlugin = !!(cap && cap.Plugins && cap.Plugins.FirebaseAuthentication);
             const isNative = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
-
-            alert(`DEBUG INFO:\n- hasCapacitor: ${hasCap}\n- hasPlugin: ${hasPlugin}\n- isNative: ${isNative}`);
+            const hasPlugin = !!(cap && cap.Plugins && cap.Plugins.FirebaseAuthentication);
 
             try {
                 if (isNative && hasPlugin) {
-                    alert("بدء تشغيل Native Google Sign-In...");
                     // useCredentialManager: true للتوافق مع أندرويد الحديث و targetSdk 36
-                    const signInPromise = cap.Plugins.FirebaseAuthentication.signInWithGoogle({
+                    const result = await cap.Plugins.FirebaseAuthentication.signInWithGoogle({
                         skipNativeAuth: true,
                         useCredentialManager: true
                     });
-                    const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('TIMEOUT')), 60000)
-                    );
-                    const result = await Promise.race([signInPromise, timeoutPromise]);
-                    alert("تم الحصول على الاستجابة من جوجل!");
 
                     if (result && result.credential && result.credential.idToken) {
-                        alert("تم الحصول على الـ idToken بنجاح!");
                         const credential = GoogleAuthProvider.credential(result.credential.idToken);
                         await signInWithCredential(auth, credential);
                         const currentEls = getElements();
@@ -290,7 +281,6 @@ const initAuthListeners = () => {
                         throw new Error('NO_CREDENTIAL');
                     }
                 } else {
-                    alert("بدء تشغيل Web Google Sign-In (Popup)...");
                     // web: استخدام popup
                     await signInWithPopup(auth, googleProvider);
                     const currentEls = getElements();
@@ -316,12 +306,11 @@ const initAuthListeners = () => {
                         errorMsg = "مشكلة في إعدادات النظام. يرجى مراجعة المدير.";
                     } else if (errorStr.includes('network')) {
                         errorMsg = "خطأ في الاتصال. يرجى التحقق من الإنترنت.";
+                    } else if (errorStr.includes('credential') || errorStr.includes('16')) {
+                        errorMsg = "خطأ في إعدادات تسجيل الدخول. يرجى مراجعة المدير.";
                     }
-                    const detail = error.message || error.code || String(error);
-                    const finalMsg = `${errorMsg} (${detail})`;
-                    alert(`خطأ تسجيل الدخول بجوجل:\n${finalMsg}`);
-                    showError(finalMsg);
-                    if (typeof window.showToast === 'function') window.showToast(finalMsg, 'error');
+                    showError(errorMsg);
+                    if (typeof window.showToast === 'function') window.showToast(errorMsg, 'error');
                 }
             } finally {
                 // ✅ الزر يرجع دايماً حتى لو cancel
@@ -397,7 +386,7 @@ getRedirectResult(auth).then((result) => {
         const wasSignedOut = sessionStorage.getItem('antiko_signed_out');
         if (wasSignedOut === 'true') {
             sessionStorage.removeItem('antiko_signed_out');
-            signOut(auth).catch(() => {});
+            signOut(auth).catch(() => { });
             return;
         }
         const els = getElements();
@@ -415,7 +404,7 @@ if (new URLSearchParams(window.location.search).get('showLogin') === '1') {
 
 // Expose globals for window actions
 window.openPrivacyModal = openPrivacyModal;
-window.handleBottomNavAccount = function() {
+window.handleBottomNavAccount = function () {
     const els = getElements();
     if (els.bottomNavAccount) {
         const navItems = document.querySelectorAll('.mobile-bottom-nav .bottom-nav-item');
